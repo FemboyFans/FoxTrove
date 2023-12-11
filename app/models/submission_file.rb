@@ -244,4 +244,66 @@ class SubmissionFile < ApplicationRecord
       end
     end
   end
+
+  def similar
+    files = IqdbProxy.query_submission_file(self)
+    notices = []
+    files.each do |f|
+      next if f[:score] < 80
+      file = f[:submission_file]
+      if file.width > width && file.height > height
+        notices << { type: :larger, file: file }
+      else
+        notices << { type: :larger_width, file: file } if file.width > width
+        notices << { type: :larger_height, file: file } if file.height > height
+      end
+      notices << { type: :different_type, file: file } if file.content_type != content_type
+      notices << { type: :larger_filesize, file: file } if file.size > size
+    end
+
+    largest_size = {}
+    notices.each do |n|
+      next if n[:type] != :larger_filesize
+      s = n[:file].content_type.to_sym
+      if largest_size[s].nil? || n[:file].size > largest_size[s]
+        largest_size[s] = n[:file].size
+        next
+      end
+      false
+    end
+
+    notices.select { |n| n[:type] != :larger_filesize || largest_size[n[:file].content_type.to_sym] == n[:file].size }
+
+    by_id = {}
+    notices.each do |n|
+      by_id[n[:file].id] ||= []
+      by_id[n[:file].id] << n
+    end
+
+    by_id.values
+  end
+
+  def similar_text(sim, t)
+    case sim[:type]
+    when :larger
+      "L"
+    when :larger_width
+      "LW"
+    when :larger_height
+      "LH"
+    when :different_type
+      "DT-#{Mime::Type.lookup(sim[:file].content_type).symbol.to_s.upcase}"
+    when :larger_filesize
+      "LF (#{t.number_to_human_size(sim[:file].size)})"
+    else
+      "Unknown similarity type: :#{sim[:type]} for submission #{sim[:file].id}"
+    end
+  end
+
+  def upload_url(t)
+    # return nil unless e6_posts.empty?
+    file_url = direct_url.starts_with?("file://") || direct_url.include?("wixmp.com") ? "" : "upload_url=#{CGI.escape(direct_url)}&"
+    description = artist_submission.description_on_site.empty? ? "" : "&description=#{CGI.escape("[quote]\n#{artist_submission.description_on_site}\n[/quote]")}"
+    @upload_url ||= "https://e621.net/uploads/new?#{file_url}sources=#{CGI.escape(t.submission_url(artist_submission))}#{description}&tags=#{created_at_on_site.year}+"
+  end
 end

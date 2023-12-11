@@ -10,11 +10,15 @@
   <% if entry.is_exact_match? %>
     Exact
   <% else %>
+      <%= link_to_external "RPL", "https://e621.net/post_replacements/new?post_id=#{entry.post_id}&upload_url=#{CGI.escape(submission_file.direct_url)}&source=#{CGI.escape(submission_url(submission_file.artist_submission))}" %>
     <span class="size-difference">
       <%= number_to_human_size(entry.post_size - submission_file.size, precision: 2) %>
     </span>
     <span class="dimension-difference" title="<%= "#{entry.post_width}x#{entry.post_height}" %>">
       x<%= (entry.post_width / submission_file.width.to_f).round(1) %>
+    </span>
+    <span class="file-type">
+      <%= entry.post_json['file']['ext'] %>
     </span>
   <% end %>
   </div>

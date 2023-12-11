@@ -18,3 +18,4 @@ config/reverser_custom_config.yml
 
 spec/examples.txt
 .env
+.idea
