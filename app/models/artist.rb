@@ -65,12 +65,18 @@ class Artist < ApplicationRecord
     SubmissionFile.search(artist_id: id, upload_status: "larger_only_dimensions")
   end
 
+  def formatted_name
+    return "#{name} (Commissioner)" if is_commissioner?
+    name
+  end
+
   concerning :SearchMethods do
     class_methods do
       def search(params)
         q = all
 
         q = q.attribute_matches(params[:name], :name)
+        q = q.where(is_commissioner: params[:is_commissioner].to_s.truthy?) if params[:is_commissioner].present?
         q = q.join_attribute_matches(params[:url_identifier], artist_urls: :url_identifier)
         q = q.join_attribute_matches(params[:site_type], artist_urls: :site_type)
         q.order(id: :desc)

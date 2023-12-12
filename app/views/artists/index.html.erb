@@ -2,6 +2,7 @@
   <%= f.input :name %>
   <%= f.input :url_identifier %>
   <%= f.input :site_type, label: "Site", collection: site_types_collection, include_blank: true %>
+  <%= f.input :is_commissioner, label: "Commissioner", collection: [%w[Yes true], %w[No false]], include_blank: true %>
 <% end %>
 
 <table class="table full-width">
@@ -22,7 +23,7 @@
     <% @artists.each do |artist| %>
       <tr>
         <td><%= link_to artist.id, artist_path(artist) %></td>
-        <td><%= artist.name %></td>
+        <td><%= artist.formatted_name %></td>
         <td><%= artist.artist_urls.count %></td>
         <td><%= oldest_last_scraped_at_text(artist) %></td>
         <td><%= artist.submissions.count %></td>
