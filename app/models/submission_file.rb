@@ -2,6 +2,7 @@
 
 class SubmissionFile < ApplicationRecord
   belongs_to :artist_submission
+  has_one :artist, through: :artist_submission
   has_many :e6_posts, dependent: :destroy
 
   validate :original_present
@@ -245,11 +246,12 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
-  def similar
+  def similar # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     files = IqdbProxy.query_submission_file(self)
     notices = []
     files.each do |f|
       next if f[:score] < 80
+
       file = f[:submission_file]
       if file.width > width && file.height > height
         notices << { type: :larger, file: file }
@@ -264,12 +266,12 @@ class SubmissionFile < ApplicationRecord
     largest_size = {}
     notices.each do |n|
       next if n[:type] != :larger_filesize
+
       s = n[:file].content_type.to_sym
       if largest_size[s].nil? || n[:file].size > largest_size[s]
         largest_size[s] = n[:file].size
         next
       end
-      false
     end
 
     notices.select { |n| n[:type] != :larger_filesize || largest_size[n[:file].content_type.to_sym] == n[:file].size }
@@ -283,7 +285,7 @@ class SubmissionFile < ApplicationRecord
     by_id.values
   end
 
-  def similar_text(sim, t)
+  def similar_text(sim, template)
     case sim[:type]
     when :larger
       "L"
@@ -294,16 +296,24 @@ class SubmissionFile < ApplicationRecord
     when :different_type
       "DT-#{Mime::Type.lookup(sim[:file].content_type).symbol.to_s.upcase}"
     when :larger_filesize
-      "LF (#{t.number_to_human_size(sim[:file].size)})"
+      "LF (#{template.number_to_human_size(sim[:file].size)})"
     else
       "Unknown similarity type: :#{sim[:type]} for submission #{sim[:file].id}"
     end
   end
 
-  def upload_url(t)
+  NO_GALLERY_SITES = %w[twitter].freeze
+
+  def upload_url(template) # rubocop:disable Metrics/CyclomaticComplexity
     # return nil unless e6_posts.empty?
+    sources = []
+    sources << template.gallery_url(artist_url) unless NO_GALLERY_SITES.include?(artist_url.site_type)
+    sources << template.submission_url(artist_submission)
+    sources = sources.map { |source| CGI.escape(source) }.join(",")
     file_url = direct_url.starts_with?("file://") || direct_url.include?("wixmp.com") ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = artist_submission.description_on_site.empty? ? "" : "&description=#{CGI.escape("[quote]\n#{artist_submission.description_on_site}\n[/quote]")}"
-    @upload_url ||= "https://e621.net/uploads/new?#{file_url}sources=#{CGI.escape(t.submission_url(artist_submission))}#{description}&tags=#{created_at_on_site.year}+"
+    tags = [created_at_on_site.year]
+    tags << artist.e621_tag if artist.e621_tag.present?
+    @upload_url ||= "https://e621.net/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join('+')}"
   end
 end

@@ -3,8 +3,9 @@ Current Links:
 <%= @artist.errors.full_messages.join(", ") %>
 <%= simple_form_for @artist do |f| %>
   <%= f.input :name, as: :string %>
+  <%= f.input :e621_tag, as: :string, label: "E621 Tag" %>
   <%= f.input :url_string, as: :text, label: "New Links", input_html: { rows: 10, cols: 50 } %>
-  <%= f.input :is_commissioner, as: :boolean %>
+  <%= f.input :is_commissioner, as: :boolean, label: "Commissioner" %>
   <%= f.button :submit %>
 <% end %>
 

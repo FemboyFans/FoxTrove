@@ -56,13 +56,13 @@ class ArtistsController < ApplicationController
   private
 
   def artist_params
-    permitted_params = %i[name url_string is_commissioner]
+    permitted_params = %i[name url_string is_commissioner e621_tag]
 
     params.fetch(:artist, {}).permit(permitted_params)
   end
 
   def index_search_params
-    params.fetch(:search, {}).permit(:name, :url_identifier, :site_type, :is_commissioner)
+    params.fetch(:search, {}).permit(:name, :url_identifier, :site_type, :is_commissioner, :e621_tag)
   end
 
   def instance_search_params

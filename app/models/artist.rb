@@ -67,6 +67,8 @@ class Artist < ApplicationRecord
 
   def formatted_name
     return "#{name} (Commissioner)" if is_commissioner?
+    return "#{name} (#{e621_tag})" if e621_tag.present?
+
     name
   end
 

@@ -1,5 +1,6 @@
 <%= hideable_search(artists_path) do |f| %>
   <%= f.input :name %>
+  <%= f.input :e621_tag, label: "E621 Tag" %>
   <%= f.input :url_identifier %>
   <%= f.input :site_type, label: "Site", collection: site_types_collection, include_blank: true %>
   <%= f.input :is_commissioner, label: "Commissioner", collection: [%w[Yes true], %w[No false]], include_blank: true %>
