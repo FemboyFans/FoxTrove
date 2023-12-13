@@ -4,6 +4,7 @@
   <%= f.input :app_name, input_html: { value: Config.app_name } %>
   <%= f.input :log_scraper_requests, as: :select, selected: Config.log_scraper_requests? %>
   <%= f.input :scraper_request_rate_limit, input_html: { value: Config.scraper_request_rate_limit } %>
+  <%= f.input :per_page, input_html: { value: Config.per_page } %>
   <%= f.input :time_zone, collection: ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] }, selected: Config.time_zone %>
   <%= f.submit %>
 <% end %>
