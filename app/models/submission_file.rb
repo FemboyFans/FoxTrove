@@ -316,4 +316,8 @@ class SubmissionFile < ApplicationRecord
     tags << artist.e621_tag if artist.e621_tag.present?
     @upload_url ||= "https://e621.net/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join('+')}"
   end
+
+  def self.find_by_md5(md5)
+    SubmissionFile.joins(original_attachment: :blob).find_by(active_storage_blobs: { checksum: Base64.encode64([md5].pack("H*"))[..-2] })
+  end
 end

@@ -53,10 +53,14 @@ class ArtistsController < ApplicationController
     Artist.find_each(&:enqueue_all_urls)
   end
 
+  def sync_e621
+    SyncFromE621Job.perform_later(Artist.find(params[:id]))
+  end
+
   private
 
   def artist_params
-    permitted_params = %i[name url_string is_commissioner e621_tag]
+    permitted_params = %i[name url_string is_commissioner]
 
     params.fetch(:artist, {}).permit(permitted_params)
   end

@@ -67,7 +67,6 @@ class Artist < ApplicationRecord
 
   def formatted_name
     return "#{name} (Commissioner)" if is_commissioner?
-    return "#{name} (#{e621_tag})" if e621_tag.present?
 
     name
   end
@@ -84,5 +83,14 @@ class Artist < ApplicationRecord
         q.order(id: :desc)
       end
     end
+  end
+
+  def e621_tag
+    # noinspection RubyRedundantSafeNavigation
+    e621_url&.url_identifier
+  end
+
+  def e621_url
+    artist_urls.find_by(site_type: "e621")
   end
 end

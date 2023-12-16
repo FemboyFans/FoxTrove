@@ -19,7 +19,7 @@ module ApplicationHelper
   end
 
   def link_to_external(text, url, **)
-    link_to text, url, **, rel: "nofollow noopener noreferrer"
+    link_to(text, url, **, rel: "nofollow noopener noreferrer")
   end
 
   def fake_link(text, **)

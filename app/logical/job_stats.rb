@@ -20,6 +20,17 @@ class JobStats
     @scraping_queued ||= stats_queued("scraping", proc)
   end
 
+  def e621_sync_queued
+    proc = ->(ids) {
+      res = {}
+      ids.each do |id|
+        res[id] = (res[id] || 0) + 1
+      end
+      res
+    }
+    @e621_sync_queued ||= stats_queued("e621_sync", proc)
+  end
+
   def scraping_now
     @scraping_now ||= GoodJob::JobsFilter.new(state: "running", queue_name: "scraping").records.map { |job| extract_model_id(job) }
   end

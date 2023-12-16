@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   resources :artists, only: %i[index new create show destroy edit update] do
     member do
       post :enqueue_all_urls
+      post :sync_e621
     end
     collection do
       post :enqueue_everything

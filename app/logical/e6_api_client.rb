@@ -14,6 +14,22 @@ module E6ApiClient
     client.get("/posts/#{id}.json").raise_for_status.json["post"]
   end
 
+  def get_posts(tags, page: 1, limit: 320)
+    tags = [tags] unless tags.is_a?(Array)
+    client.get("/posts.json?tags=#{tags.join('%20')}&page=#{page}&limit=#{limit}").raise_for_status.json["posts"]
+  end
+
+  def get_all_posts(tags)
+    fetch = ->(page) {
+      d = get_posts(tags, page: page)
+      if d.length == 320
+        d += fetch.call(page + 1)
+      end
+      d
+    }
+    fetch.call(1)
+  end
+
   private
 
   def client

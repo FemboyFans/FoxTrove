@@ -57,7 +57,8 @@ Samples: <%= number_to_human_size(@sample_size) %>
 
 Pending Scraping: <%= job_stats.scraping_queued.values.sum %><br>
 Pending Submission File Downloads: <%= job_stats.submission_download_queued.values.sum %><br>
-Pending E6 IQDB Calls: <%= job_stats.e6_iqdb_queued.values.sum %><br>
+Pending E621 IQDB Calls: <%= job_stats.e6_iqdb_queued.values.sum %><br>
+Pending E621 Post Syncs: <%= job_stats.e621_sync_queued.values.sum %><br>
 <br>
 <%= render "artist_urls/list", artist_urls: ArtistUrl.where(id: job_stats.active_urls) %>
 
