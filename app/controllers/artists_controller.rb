@@ -54,7 +54,7 @@ class ArtistsController < ApplicationController
   end
 
   def sync_e621
-    SyncFromE621Job.perform_later(Artist.find(params[:id]))
+    Artist.find(params[:id]).sync_e621
   end
 
   private
@@ -80,6 +80,8 @@ class ArtistsController < ApplicationController
     return if artist.errors.any?
 
     new_artist_urls.each(&:enqueue_scraping)
+    e6 = new_artist_urls.filter { |url| url.site_type == "e621" }
+    artist.sync_e621 if e6.present?
     artist.save
   end
 end

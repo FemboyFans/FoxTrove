@@ -93,4 +93,8 @@ class Artist < ApplicationRecord
   def e621_url
     artist_urls.find_by(site_type: "e621")
   end
+
+  def sync_e621
+    SyncFromE621Job.perform_later(self)
+  end
 end
