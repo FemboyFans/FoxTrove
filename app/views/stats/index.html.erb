@@ -18,10 +18,10 @@
       <% next unless definition.scraper? || entry["file_count"] %>
       <tr>
         <td><%= link_to_if(definition.scraper?, definition.display_name, config_path(definition.site_type)) %></td>
-        <td><%= link_to(entry["artist_count"] || 0, artists_path(search: { site_type: definition.site_type })) %></td>
-        <td><%= link_to(entry["url_count"] || 0, artist_urls_path(search: { site_type: definition.site_type }))  %></td>
-        <td><%= link_to(entry["submission_count"] || 0, submission_files_path(search: { site_type: definition.site_type }))  %></td>
-        <td><%= link_to(entry["file_count"] || 0, submission_files_path(search: { site_type: definition.site_type }))  %></td>
+        <td><%= link_to(entry["artist_count"] || 0, artists_path(search: { site_type: definition.site_type }), id: "scraped.#{definition.site_type}.artist_count") %></td>
+        <td><%= link_to(entry["url_count"] || 0, artist_urls_path(search: { site_type: definition.site_type }), id: "scraped.#{definition.site_type}.url_count")  %></td>
+        <td><%= link_to(entry["submission_count"] || 0, submission_files_path(search: { site_type: definition.site_type }), id: "scraped.#{definition.site_type}.submission_count")  %></td>
+        <td><%= link_to(entry["file_count"] || 0, submission_files_path(search: { site_type: definition.site_type }), id: "scraped.#{definition.site_type}.file_count")  %></td>
         <td>
           <% if definition.manually_disabled? %>
             Manually disabled
@@ -49,17 +49,55 @@
 </table>
 
 <h1>Storage</h1>
-DB: <%= number_to_human_size(@db_size) %><br>
-Original: <%= number_to_human_size(@original_size) %><br>
-Samples: <%= number_to_human_size(@sample_size) %>
+DB: <span id="storage.db"><%= number_to_human_size(@db_size) %></span><br>
+Original: <span id="storage.original"><%= number_to_human_size(@original_size) %></span><br>
+Samples: <span id="storage.samples"><%= number_to_human_size(@sample_size) %></span>
 
 <h1>Job Stats</h1>
 
-Pending Scraping: <%= job_stats.scraping_queued.values.sum %><br>
-Pending Submission File Downloads: <%= job_stats.submission_download_queued.values.sum %><br>
-Pending E621 IQDB Calls: <%= job_stats.e6_iqdb_queued.values.sum %><br>
-Pending E621 Post Syncs: <%= job_stats.e621_sync_queued.values.sum %><br>
+Pending Scraping: <span id="jobs.scraping"><%= job_stats.scraping_queued.values.sum %></span><br>
+Pending Submission File Downloads: <span id="jobs.file_downloads"><%= job_stats.submission_download_queued.values.sum %></span><br>
+Pending E621 IQDB Calls: <span id="jobs.iqdb"><%= job_stats.e6_iqdb_queued.values.sum %></span><br>
+Pending E621 Post Syncs: <span id="jobs.post_sync"><%= job_stats.e621_sync_queued.values.sum %></span><br>
 <br>
-<%= render "artist_urls/list", artist_urls: ArtistUrl.where(id: job_stats.active_urls) %>
+<div id="artist-urls-list">
+  <%= render "artist_urls/list", artist_urls: ArtistUrl.where(id: job_stats.active_urls) %>
+</div>
 
 <% page_title "Stats" %>
+
+<%= javascript_tag nonce: true do -%>
+  document.addEventListener("DOMContentLoaded", async function () {
+    await update();
+  });
+
+  window.active = true;
+
+  window.update = async function update() {
+    const stats = await (await fetch("/stats.json")).json();
+
+    document.getElementById("storage.db").innerText = stats.storage.db;
+    document.getElementById("storage.original").innerText = stats.storage.original;
+    document.getElementById("storage.samples").innerText = stats.storage.samples;
+
+    document.getElementById("jobs.scraping").innerText = stats.jobs.scraping;
+    document.getElementById("jobs.file_downloads").innerText = stats.jobs.file_downloads;
+    document.getElementById("jobs.iqdb").innerText = stats.jobs.iqdb;
+    document.getElementById("jobs.post_sync").innerText = stats.jobs.post_sync;
+
+    Object.entries(stats.scraped).forEach(([key, data]) => {
+        document.getElementById(`scraped.${key}.artist_count`).innerText = data.artist_count;
+        document.getElementById(`scraped.${key}.url_count`).innerText = data.url_count;
+        document.getElementById(`scraped.${key}.submission_count`).innerText = data.submission_count;
+        document.getElementById(`scraped.${key}.file_count`).innerText = data.file_count;
+    });
+
+    document.getElementById("artist-urls-list").innerHTML = stats.artist_urls;
+
+    // TODO: investigate if this will hit the call stack limit
+    if (window.active) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await update();
+    }
+  }
+<% end %>
