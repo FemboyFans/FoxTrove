@@ -7,10 +7,6 @@ require:
 
 AllCops:
   NewCops: enable
-  Exclude:
-    - bin/*
-    - db/schema.rb
-    - vendor/**/*
   TargetRubyVersion: 3.2
 
 FactoryBot/AssociationStyle:
@@ -77,9 +73,6 @@ Style/HashSyntax:
   EnforcedShorthandSyntax: never
 
 Style/IfUnlessModifier:
-  Enabled: false
-
-Style/InfiniteLoop:
   Enabled: false
 
 Style/StringLiterals:

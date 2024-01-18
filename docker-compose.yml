@@ -7,11 +7,9 @@ x-environment: &common-env
 
 services:
   reverser:
-    build:
-      context: ./
-      args:
-        COMPOSE_PROFILES: ${COMPOSE_PROFILES-}
+    build: ./
     image: reverser
+    user: ${DOCKER_USER:-root}
     environment:
       <<: *common-env
       RAILS_SERVER_EXEC: bin/rails server -p ${EXPOSED_SERVER_PORT:-9000} -b 0.0.0.0 --pid /tmp/server.pid
@@ -34,17 +32,6 @@ services:
     ports:
       - "${BIND_IP:-127.0.0.1}:${EXPOSED_SERVER_PORT:-9000}:${EXPOSED_SERVER_PORT:-9000}"
     command: foreman start --color
-
-  solargraph:
-    image: reverser
-    entrypoint: solargraph socket -h 0.0.0.0 -p 7659
-    working_dir: $PWD
-    volumes:
-      - .:$PWD
-    ports:
-      - "7659:7659"
-    profiles:
-      - solargraph
 
   postgres:
     image: postgres:16.1-alpine3.19
