@@ -1,6 +1,8 @@
 <%# locals: (path:, artist_urls:, submission_files:) -%>
 <%= render "submission_files/search", path: path, artist_urls: artist_urls %>
 
+<%= pagy_nav(@pagy).html_safe if @pagy.pages > 1 %>
+
 <% submission_files.each do |file| %>
   <%= render "submission_files/sample", submission_file: file %>
 <% end %>
