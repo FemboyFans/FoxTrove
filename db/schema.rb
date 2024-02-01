@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_12_091112) do
+ActiveRecord::Schema[7.1].define(version: 2024_01_28_115103) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -68,6 +68,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_12_091112) do
     t.integer "site_type", null: false
     t.jsonb "scraper_status", default: {}, null: false
     t.integer "post_count"
+    t.datetime "scraper_stop_marker"
     t.index "site_type, lower(url_identifier)", name: "index_artist_urls_on_site_and_url_identifier", unique: true
     t.index ["artist_id"], name: "index_artist_urls_on_artist_id"
     t.index ["site_type", "api_identifier"], name: "index_site_type_on_api_identifier", unique: true

@@ -1,6 +1,6 @@
 FROM ruby:3.2.2-alpine3.19 as ruby-builder
 
-RUN apk --no-cache add build-base postgresql16-dev
+RUN apk --no-cache add build-base cmake postgresql16-dev
 
 COPY Gemfile Gemfile.lock ./
 RUN gem i foreman && bundle install \
@@ -17,12 +17,13 @@ FROM ruby:3.2.2-alpine3.19
 WORKDIR /app
 
 RUN apk --no-cache add \
-  tzdata git \
+  tzdata \
   postgresql16-client \
   vips ffmpeg \
   sudo
 
-RUN git config --global --add safe.directory /app
+RUN echo "[safe]" > ~/.gitconfig && \
+  echo "        directory = /app" >> ~/.gitconfig
 
 # Create a user with (potentially) the same id as on the host
 ARG HOST_UID=1000
@@ -37,3 +38,7 @@ COPY --from=node-downloader /usr/local/lib/node_modules/esbuild/bin/esbuild /usr
 
 # Copy gems
 COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
+
+# Bust cache if local git ref changes and add it to the image
+# This looks weird but handles the .git folder missing entirely
+ADD .gi?/ref?/head?/maste? /docker/git_master_ref
