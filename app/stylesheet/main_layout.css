@@ -15,6 +15,9 @@ body {
 header {
   margin: 0 0 0.8rem;
   padding: 0;
+  position: sticky;
+  top: 0;
+  background-color: var(--color-background);
 }
 
 #page {
