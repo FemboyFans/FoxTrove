@@ -14,8 +14,9 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
-config/reverser_custom_config.yml
-
-spec/examples.txt
+/config/reverser_custom_config.yml
+/data
+/.env
+/public/build
 .env
 .idea

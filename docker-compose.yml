@@ -24,8 +24,7 @@ services:
       GOOD_JOB_EXEC: bundle exec good_job --queues=e621_sync:5;scraping:1;e6_iqdb:1;variant_generation:5;default:1;submission_download:5
     volumes:
       - .:/app
-      - build_assets:/app/public/build
-      - ${REVERSER_DATA_PATH:?}/active_storage:/app/public/storage
+      - ${REVERSER_DATA_PATH:-./data}/active_storage:/app/public/storage
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,7 +43,7 @@ services:
       - POSTGRES_DB=reverser_development
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-      - ${REVERSER_DATA_PATH:?}/db_data:/var/lib/postgresql/data
+      - ${REVERSER_DATA_PATH:-./data}/db_data:/var/lib/postgresql/data
     shm_size: 256mb
     ports:
       - "${BIND_IP:-127.0.0.1}:${EXPOSED_POSTGRES_PORT:-34518}:5432"
@@ -55,12 +54,12 @@ services:
       retries: 5
 
   iqdb:
-    image: ghcr.io/e621ng/iqdb:b988f000f17008677c7546c0c13623bc956b585d
+    image: ghcr.io/e621ng/iqdb:ad5e363879d4e4b80a0821253ae610b7859c5d32
     volumes:
-      - ${REVERSER_DATA_PATH:?}/iqdb_data:/iqdb
+      - ${REVERSER_DATA_PATH:-./data}/iqdb_data:/iqdb
 
   selenium:
-    image: selenium/standalone-chrome:4.16.1-20231212
+    image: selenium/standalone-chrome:4.17.0-20240123
     environment:
       - SE_VNC_NO_PASSWORD=1
     shm_size: 2gb
@@ -73,29 +72,15 @@ services:
     image: reverser
     volumes:
       - .:/app
-    entrypoint: bundle exec rubocop --cache-root /rubocop_cache
+    entrypoint: bundle exec rubocop
     profiles:
       - rubocop
 
-  tests:
-    image: reverser
-    environment:
-      <<: *common-env
-      VIPS_WARNING: "0"
-    volumes:
-      - .:/app
-    entrypoint: bundle exec rails test
-    tmpfs:
-      - /app/tmp/storage
-    depends_on:
-      - postgres
-    profiles:
-      - tests
   yamllint:
     build:
       dockerfile_inline: |
-        FROM python:3.11-alpine3.19
-        RUN pip install yamllint==1.32.0
+        FROM python:3.12-alpine3.19
+        RUN pip install yamllint==1.33.0
         WORKDIR /app
     volumes:
       - .:/app
@@ -107,7 +92,7 @@ services:
     build:
       dockerfile_inline: |
         FROM node:20-alpine3.19
-        RUN npm install stylelint@15.11.0 stylelint-config-standard@34.0.0 -g
+        RUN npm install stylelint@16.2.1 stylelint-config-standard@36.0.0 -g
         WORKDIR /app
     volumes:
       - .:/app
@@ -119,13 +104,28 @@ services:
     build:
       dockerfile_inline: |
         FROM node:20-alpine3.19
-        RUN npm install typescript@5.2.2 -g
+        RUN npm install typescript@5.3.3 -g
         WORKDIR /app
     volumes:
       - .:/app
     entrypoint: tsc --noEmit -p .github/tsconfig.json
     profiles:
       - tslint
+
+  tests:
+    image: reverser
+    user: ${DOCKER_USER:-root}
+    environment:
+      <<: *common-env
+      VIPS_WARNING: "0"
+    volumes:
+      - .:/app
+    entrypoint: bundle exec rails test
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - tests
 
 networks:
   default:
@@ -134,6 +134,3 @@ networks:
       driver: default
     driver_opts:
       com.docker.network.bridge.name: br-reverser
-
-volumes:
-  build_assets:
