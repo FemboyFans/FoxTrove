@@ -33,7 +33,7 @@ class ArtistUrl < ApplicationRecord
     afterdark artconomy artfight boosty
     buzzly furrystation toyhouse ychart
     manual trello itaku artfol
-    cohost inkblot bluesky e621
+    cohost inkblot bluesky omorashi e621
   ].map.with_index { |v, index| [v, index] }.to_h
 
   def self.search(params)
