@@ -105,16 +105,14 @@ module Scraper
         driver.navigate.to "#{LOGIN_URL}?#{login_params.to_query}"
         driver.wait_for_element(css: "form input[autocomplete='username']").send_keys Config.pixiv_user
         driver.find_element(css: "form input[autocomplete='current-password']").send_keys Config.pixiv_pass
-        driver.find_element(css: "form button[type='submit'").click
+        # Scroll the login button into view
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+        driver.find_element(xpath: "//*[text()='Log In']").click
 
-        code = nil
-        wait = Selenium::WebDriver::Wait.new(timeout: 10)
-        wait.until do
+        driver.wait_for do
           logs = driver.logs.get("performance")
-          code = fetch_code_from_logs logs
-          true if code
+          fetch_code_from_logs(logs)
         end
-        code
       end
     end
 
