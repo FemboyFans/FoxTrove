@@ -130,7 +130,7 @@ class ApplicationRecord < ActiveRecord::Base
 
       def pagy(params)
         page = [params[:page].to_i, 1].max
-        limit = params[:limit].to_i <= 0 ? Config.per_page : params[:limit]
+        limit = params[:limit].to_i <= 0 ? Config.files_per_page : params[:limit]
         pagy = Pagy.new(page: page, items: limit, count: count)
         [pagy, offset(pagy.offset).limit(pagy.items)]
       end
