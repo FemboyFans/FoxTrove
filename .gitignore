@@ -18,5 +18,6 @@
 /data
 /.env
 /public/build
+/coverage
 .env
 .idea

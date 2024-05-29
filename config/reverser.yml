@@ -9,41 +9,16 @@ scraper_request_rate_limit: 0
 # https://github.com/rails/rails/blob/2d2fdc941e7497ca77f99ce5ad404b6e58f043ef/activesupport/lib/active_support/values/time_zone.rb#L31-L183
 time_zone: Berlin
 
-per_page: 25
+files_per_page: 25
 
-# Disable individual scrapers
-artconomy_disabled?: false
-artstation_disabled?: false
-deviantart_disabled?: false
-furaffinity_disabled?: false
-furrynetwork_disabled?: false
-inkbunny_disabled?: false
-newgrounds_disabled?: false
-reddit_disabled?: false
-sofurry_disabled?: false
-twitter_disabled?: false
-weasyl_disabled?: false
-pixiv_disabled?: false
-piczel_disabled?: false
-tumblr_disabled?: false
-baraag_disabled?: false
-pawoo_disabled?: false
-itaku_disabled?: false
-artfight_disabled?: false
-commishes_disabled?: false
-omorashi_disabled?: false
-
-# Credentials, overwrite in custom file
 inkbunny_user:
 inkbunny_pass:
-# The applications redirect uri must be `http://localhost`
 deviantart_client_id:
 deviantart_client_secret:
 deviantart_user:
 deviantart_pass:
 e6_user:
 e6_apikey:
-# Set timezone to 00:00 without daylight saving correction. Modern Theme required. Full Date Format.
 furaffinity_user:
 furaffinity_pass:
 weasyl_apikey:
@@ -51,7 +26,6 @@ sofurry_user:
 sofurry_pass:
 twitter_user:
 twitter_pass:
-# Only set if your account requires 2fa
 twitter_otp_secret:
 reddit_client_id:
 reddit_client_secret:

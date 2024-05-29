@@ -37,6 +37,10 @@ class StatsController < ApplicationController
     end
   end
 
+  def selenium
+    render json: { active: SeleniumWrapper.active? }
+  end
+
   private
 
   def sum_for(name, record_type)

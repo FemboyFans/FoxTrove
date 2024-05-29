@@ -2,20 +2,18 @@
 
 module Scraper
   class Artconomy < Base
+    STATE = :page
+
     def initialize(artist_url)
       super
       @page = 1
-    end
-
-    def self.state
-      :page
     end
 
     def fetch_next_batch
       response = fetch_json("https://artconomy.com/api/profiles/v1/account/#{url_identifier}/submissions/art/?page=#{@page}", headers: headers)
       @page += 1
       end_reached if response["results"].size != 50
-      response["results"]
+      response["results"].pluck("submission")
     end
 
     def to_submission(submission)

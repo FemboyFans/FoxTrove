@@ -17,16 +17,40 @@ module Scraper
     def self.inherited(base)
       super
       base.class_eval do
+        def self.site_type
+          name.demodulize.underscore
+        end
+
         def self.all_config_keys
-          prefix = name.demodulize.underscore
-          Config.default_config.keys.select { |key| key.start_with?("#{prefix}_") && !key.end_with?("_disabled?") }
+          Config.default_config.keys.select { |key| key.start_with?("#{site_type}_") }
+        end
+
+        def self.optional_config_keys
+          const_defined?(:OPTIONAL_CONFIG_KEYS) ? self::OPTIONAL_CONFIG_KEYS : []
         end
 
         def self.required_config_keys
-          optional_config_keys = try(:optional_config_keys) || []
-          all_config_keys - optional_config_keys
+          all_config_keys - optional_config_keys - [:"#{site_type}_disabled?"]
         end
       end
+    end
+
+    def process!
+      jumpstart(@artist_url.scraper_status[self.class::STATE.to_s]) if @artist_url.scraper_status.present?
+      @artist_url.scraper_status["started_at"] ||= Time.current
+
+      while more?
+        submissions = fetch_and_save_next_submissions
+
+        @artist_url.update(scraper_status: @artist_url.scraper_status.merge(self.class::STATE => state_value))
+
+        break if submissions.any? { |submission| @artist_url.scraper_stop_marker&.after?(submission.timestamp_for_cutoff) }
+      end
+      @artist_url.update(
+        last_scraped_at: @artist_url.scraper_status["started_at"],
+        scraper_stop_marker: new_stop_marker,
+        scraper_status: {},
+      )
     end
 
     # Will there possibly be more results when calling fetch_next_batch
@@ -43,12 +67,12 @@ module Scraper
 
     # Value that describes the progress during scraping. Can be a page/offset/cursor etc.
     def state_value
-      instance_variable_get(:"@#{self.class.state}")
+      instance_variable_get(:"@#{self.class::STATE}")
     end
 
     # Insert the value where the scraper should continue from in case of an error
     def jumpstart(value)
-      instance_variable_set(:"@#{self.class.state}", value)
+      instance_variable_set(:"@#{self.class::STATE}", value)
     end
 
     # Which date should already be considered scraped? Normally this is good to set to
@@ -95,7 +119,8 @@ module Scraper
     end
 
     def self.cache_key(method_name)
-      config_checksum = Digest::MD5.hexdigest(all_config_keys.map { |key| Config.send(key) }.join("|"))
+      keys = required_config_keys + optional_config_keys
+      config_checksum = Digest::MD5.hexdigest(keys.map { |key| Config.send(key) }.join("|"))
       "#{name}.#{method_name}/#{config_checksum}"
     end
 

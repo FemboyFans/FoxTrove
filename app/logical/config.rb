@@ -4,7 +4,11 @@ module Config
   module_function
 
   def default_config
-    @default_config ||= YAML.load_file(Rails.root.join("config/reverser.yml"), symbolize_names: true)
+    @default_config ||= begin
+      file_config = YAML.load_file(Rails.root.join("config/reverser.yml"), symbolize_names: true)
+      scraper_disabled_keys = Sites.scraper_definitions.to_h { |definition| [:"#{definition.site_type}_disabled?", false] }
+      file_config.merge(scraper_disabled_keys)
+    end
   end
 
   def custom_config
@@ -16,7 +20,14 @@ module Config
   end
 
   def merge_custom_config(new_values)
-    custom_config.merge(new_values).transform_keys(&:to_s)
+    mapped = new_values.to_h do |k, v|
+      if respond_to?(:"#{k}?") || k.end_with?("?")
+        ["#{k.to_s.delete_suffix('?')}?", ActiveModel::Type::Boolean.new.cast(v)]
+      else
+        [k, v]
+      end
+    end
+    custom_config.merge(mapped).transform_keys(&:to_s)
   end
 
   def write_custom_config(new_values)

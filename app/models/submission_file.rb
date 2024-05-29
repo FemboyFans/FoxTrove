@@ -56,6 +56,16 @@ class SubmissionFile < ApplicationRecord
     "select from e6_posts where submission_files.id = e6_posts.submission_file_id #{"and #{condition}" if condition}"
   end
 
+  def self.blob_for_io(io, filename)
+    # Deviantart doesn't have to return only images.
+    # No way to find this out through the api response as far as I'm aware.
+    # https://www.deviantart.com/fr95/art/779625010/
+    mime_type = Marcel::MimeType.for io
+    return if mime_type.in? Scraper::Submission::MIME_IGNORE
+
+    ActiveStorage::Blob.create_and_upload!(io: io, filename: filename, content_type: mime_type, identify: false)
+  end
+
   def self.from_attachable(attachable:, artist_submission:, url:, created_at:, file_identifier:)
     submission_file = SubmissionFile.new(
       artist_submission: artist_submission,
@@ -74,16 +84,10 @@ class SubmissionFile < ApplicationRecord
   end
 
   def attach_original_from_file!(file)
-    # Deviantart doesn't have to return only images.
-    # No way to find this out through the api response as far as I'm aware.
-    # https://www.deviantart.com/fr95/art/779625010/
-    mime_type = Marcel::MimeType.for file
-    return if mime_type.in? Scraper::Submission::MIME_IGNORE
-
     filename = File.basename(Addressable::URI.parse(direct_url).path)
-    blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: filename)
+    blob = self.class.blob_for_io(file, filename)
     begin
-      attach_original_from_blob!(blob)
+      attach_original_from_blob!(blob) if blob
     rescue StandardError => e
       blob.purge
       raise e
@@ -102,7 +106,7 @@ class SubmissionFile < ApplicationRecord
 
     if can_iqdb?
       begin
-        Vips::Image.new_from_file(blob.service.path_for(blob.key), fail: true).stats
+        Vips::Image.new_from_file(file_path_for(blob), fail: true).stats
       rescue Vips::Error => e
         self.file_error = e.message.strip
       end
@@ -116,8 +120,15 @@ class SubmissionFile < ApplicationRecord
     file_error.present?
   end
 
+  def original_attachment=(new_attachment)
+    super
+    @original_purged = new_attachment.nil?
+  end
+
   def original_present
-    errors.add(:original_file, "not attached") unless original.attached?
+    return if new_record? ? original.attached? : @original_purged != true
+
+    errors.add(:original_file, "not attached")
   end
 
   def sample_generated?
@@ -200,8 +211,13 @@ class SubmissionFile < ApplicationRecord
     sample.attach(io: io, filename: "sample")
   end
 
-  def file_path_for(variant)
-    send(variant).service.path_for(send(variant).key)
+  def file_path_for(variant_or_blob)
+    blob = variant_or_blob.is_a?(Symbol) ? send(variant_or_blob) : variant_or_blob
+    blob.service.path_for(blob.key)
+  end
+
+  def url_for(variant, **)
+    Rails.application.routes.url_helpers.rails_blob_path(send(variant), only_path: true, **)
   end
 
   concerning :SearchMethods do
@@ -243,6 +259,11 @@ class SubmissionFile < ApplicationRecord
 
       def search_params
         [:artist_id, :site_type, :upload_status, :corrupt, :zero_sources, :zero_artists, :larger_only_filesize_treshold, :content_type, :title, :description, { artist_url_id: [] }]
+      end
+
+      def pagy(params)
+        params[:limit] ||= Config.files_per_page
+        super
       end
     end
   end

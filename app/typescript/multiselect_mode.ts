@@ -3,10 +3,10 @@ import Toggleable from "./toggleable";
 
 export default class MultiselectMode {
   private static submitting = false;
-  private static counters: NodeListOf<HTMLElement>;
+  private static counter: HTMLElement | null;
 
   public static init() {
-    this.counters = document.querySelectorAll(".selected-count");
+    this.counter = document.getElementById("selected-count");
     
     const toggleable = Toggleable.get("multiselect");
     toggleable?.setShowAction(() => {
@@ -30,7 +30,9 @@ export default class MultiselectMode {
 
     const elements = {
       hide_many: document.getElementById("hide-selected"),
+      unhide_many: document.getElementById("unhide-selected"),
       backlog_many: document.getElementById("backlock-selected"),
+      unbacklog_many: document.getElementById("unbacklock-selected"),
       enqueue_many: document.getElementById("enqueue-selected"),
     };
     for (const [endpoint, link] of Object.entries(elements)) {
@@ -58,12 +60,13 @@ export default class MultiselectMode {
     });
     this.submitting = false;
     ClickMode.deselectAll();
+    this.reset();
   }
 
   private static setCount(count?: number) {
-    count = count || ClickMode.getSelectedIds().length;
-    for (const counter  of this.counters) {
-      counter.innerText = count.toString();
+    if(this.counter) {
+      count = count || ClickMode.getSelectedIds().length;
+      this.counter.innerText = count.toString();
     }
   }
 
