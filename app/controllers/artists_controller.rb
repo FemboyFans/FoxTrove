@@ -89,11 +89,5 @@ class ArtistsController < ApplicationController
     artist.url_string.lines.map(&:strip).compact_blank.each do |url|
       artist.add_artist_url(url)
     end
-    return if artist.errors.any?
-
-    new_artist_urls.each(&:enqueue_scraping)
-    e6 = new_artist_urls.filter { |url| url.site_type == "e621" }
-    artist.sync_e621 if e6.present?
-    artist.save
   end
 end

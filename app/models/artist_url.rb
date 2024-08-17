@@ -84,9 +84,15 @@ class ArtistUrl < ApplicationRecord
   end
 
   def enqueue_scraping
+    return sync_e621 if site_type == "e621"
     return unless scraper_enabled?
     raise MissingApiIdentifier.new(url_identifier, site_type) unless api_identifier
 
     ScrapeArtistUrlJob.perform_later(self)
+  end
+
+  def sync_e621
+    return unless site_type == "e621"
+    artist.sync_e621
   end
 end
