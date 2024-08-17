@@ -15,6 +15,7 @@ end
 SimpleCov.start "rails" do
   enable_coverage :branch
   enable_coverage_for_eval
+  track_files "{app,lib}/**/*.{rb,erb}"
 
   groups.delete "Channels"
   groups.delete "Mailers"
@@ -27,6 +28,11 @@ SimpleCov.start "rails" do
     not_filtered_further = ["logical/sites", "logical/scraper"].none? { |e| src_file.filename.include? e }
     not_filtered_further && src_file.filename.include?("app/logical")
   end
+end
+
+if ENV["CI"]
+  require "simplecov_json_formatter"
+  SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
 end
 
 require_relative "../config/environment"

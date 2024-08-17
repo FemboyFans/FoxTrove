@@ -7,7 +7,7 @@ class ArtistUrl < ApplicationRecord
         Missing API identifier for #{url_identifier}:#{site_type}.
         You may be able to fix this by executing the following command:
 
-        docker compose run --rm reverser bin/rails reverser:backfill_api_identifiers SITE_TYPE=#{site_type}
+        docker compose run --rm foxtrove bin/rails foxtrove:backfill_api_identifiers SITE_TYPE=#{site_type}
       MSG
       super(msg)
     end
@@ -19,6 +19,7 @@ class ArtistUrl < ApplicationRecord
   validates :url_identifier, uniqueness: { scope: :site_type, case_sensitive: false }
   validates :api_identifier, uniqueness: { scope: :site_type, case_sensitive: false, allow_nil: true }
   after_create :set_api_identifier!
+  after_create_commit :enqueue_scraping
 
   enum :site_type, %i[
     twitter furaffinity inkbunny sofurry
@@ -43,6 +44,10 @@ class ArtistUrl < ApplicationRecord
     q = q.attribute_matches(params[:site_type], :site_type)
     q = q.attribute_matches(params[:url_identifier], :url_identifier)
     q = q.attribute_matches(params[:api_identifier], :api_identifier)
+    if params[:missing_api_identifier] == "1"
+      scrapers = Sites.definitions.select(&:scraper_enabled?).map(&:site_type)
+      q = q.attribute_nil_check("false", :api_identifier).attribute_matches(scrapers, :site_type)
+    end
     q.order(id: :desc)
   end
 
@@ -52,13 +57,15 @@ class ArtistUrl < ApplicationRecord
     begin
       self.api_identifier = scraper.fetch_api_identifier
     rescue HTTPX::HTTPError => e
-      raise e unless e.status == 404
+      http_status_error = e.status
     end
 
     if api_identifier
       save
     else
-      errors.add(:base, "#{url_identifier} failed api lookup")
+      error_message = "#{url_identifier} failed api lookup"
+      error_message << " (#{Rack::Utils::HTTP_STATUS_CODES[http_status_error]})" if http_status_error
+      errors.add(:base, error_message)
     end
   end
 

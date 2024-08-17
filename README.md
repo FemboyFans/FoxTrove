@@ -1,4 +1,6 @@
-# Reverser
+# FoxTrove
+
+[![codecov](https://codecov.io/github/Earlopain/FoxTrove/graph/badge.svg?token=JK5X2YBOHK)](https://codecov.io/github/Earlopain/FoxTrove)
 
 A content aggregator for a variety of sites to make uploading to e6 easier. Created because Saucenao doesn't support all the sites I want it to.
 
@@ -25,6 +27,8 @@ You can also search for non-uploaded submission for artists. How well this works
 * <img src="public/icons/37-artconomy.png" width="16px" height="16px"> Artconomy
 * <img src="public/icons/5-artstation.png" width="16px" height="16px"> ArtStation
 * <img src="public/icons/30-baraag.png" width="16px" height="16px"> Baraag
+* <img src="public/icons/50-bluesky.png" width="16px" height="16px"> Bluesky
+* <img src="public/icons/48-cohost.png" width="16px" height="16px"> Cohost
 * <img src="public/icons/33-commishes.png" width="16px" height="16px"> Commishes
 * <img src="public/icons/4-deviantart.png" width="16px" height="16px"> DeviantArt
 * <img src="public/icons/1-furaffinity.png" width="16px" height="16px"> FurAffinity
@@ -74,11 +78,11 @@ Install a WSL distribution, enable WSL2, and clone the project inside there. Exe
 
 ### Installation
 
-1. Clone the repo with `git clone https://github.com/earlopain/reverser.git`.
+1. Clone the repo with `git clone https://github.com/Earlopain/FoxTrove.git`.
 1. `cd` into the repo.
 1. `cp .env.sample .env` and fill out the necessary environment variables.
 1. Build the docker image with `docker compose build`.
-1. Run `docker compose run --rm reverser bin/setup`.
+1. Run `docker compose run --rm foxtrove bin/setup`.
 1. Run `docker compose up`. The container is now available at `http://localhost:9000`. A few config options are mandatory, you will be notified of them when accessing the site. See [Configuration](#configuration) on how to set them.
 
 This project is only meant to run locally on your machine. You may host it somewhere and make it accessible to others, but be aware that there are no user accounts or fine grained permissions. Everyone can do anyhting.
@@ -90,7 +94,3 @@ The compose file contains services to easily run some developments tools:
 * `docker compose run --rm rubocop`
 
 You can pass addition parameters like individual test files or `-a` for rubocop simply by appending it to the command. I suggest you make an alias for these. You may also run these commands locally, since docker does add a fair bit of startup overhead.
-
-#### Ruby LSP
-
-This repo comes with [Ruby LSP](https://github.com/Shopify/ruby-lsp) preconfigured. Install the [VSCode extension](https://marketplace.visualstudio.com/items?itemName=Shopify.ruby-lsp) and follow the instructions. The only requirement is that the Ruby version used by reverser ([see here](https://github.com/e621ng/e621ng/blob/master/Dockerfile#L1)) is installed on your host. I recommend [rbenv](https://github.com/rbenv/rbenv) to manage your Ruby versions.

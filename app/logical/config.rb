@@ -5,7 +5,7 @@ module Config
 
   def default_config
     @default_config ||= begin
-      file_config = YAML.load_file(Rails.root.join("config/reverser.yml"), symbolize_names: true)
+      file_config = YAML.load_file(Rails.root.join("config/foxtrove.yml"), symbolize_names: true)
       scraper_disabled_keys = Sites.scraper_definitions.to_h { |definition| [:"#{definition.site_type}_disabled?", false] }
       file_config.merge(scraper_disabled_keys)
     end
@@ -16,13 +16,20 @@ module Config
   end
 
   def custom_config_path
-    Rails.root.join("config/reverser_custom_config.yml")
+    old_config_path = Rails.root.join("config/foxtrove_custom_config.yml")
+    current_config_path = Rails.root.join("config/foxtrove_custom_config.yml")
+    if old_config_path.exist?
+      old_config_path.rename(current_config_path)
+    end
+    current_config_path
   end
 
   def merge_custom_config(new_values)
     mapped = new_values.to_h do |k, v|
       if respond_to?(:"#{k}?") || k.end_with?("?")
         ["#{k.to_s.delete_suffix('?')}?", ActiveModel::Type::Boolean.new.cast(v)]
+      elsif default_config[k.to_sym].is_a?(Numeric)
+        [k, cast_number(v)]
       else
         [k, v]
       end
@@ -33,6 +40,15 @@ module Config
   def write_custom_config(new_values)
     data = Psych.safe_dump(merge_custom_config(new_values))
     File.write(custom_config_path, data)
+  end
+
+  def cast_number(value)
+    value = value.tr(",", ".").delete_suffix(".0")
+    if value.include?(".")
+      value.to_f
+    else
+      value.to_i
+    end
   end
 
   def reset_cache

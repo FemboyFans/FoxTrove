@@ -30,14 +30,8 @@ module ApplicationHelper
     tag.a(text, href: "#", **, onclick: "return false;")
   end
 
-  def page_title(title = nil)
-    if title.present?
-      content_for(:page_title) { title }
-    elsif content_for? :page_title
-      "#{content_for(:page_title)} - #{Config.app_name}"
-    else
-      Config.app_name
-    end
+  def page_title(title)
+    content_for(:page_title) { title }
   end
 
   def toggleable(id, show_text, hide_text, visible_on_load:, &block)
@@ -51,11 +45,19 @@ module ApplicationHelper
 
   def hideable_search(path, &)
     search = toggleable("search", "Show Search Options", "Hide Search Options", visible_on_load: params[:search].present?) do
-      simple_form_for(:search, method: :get, url: path, defaults: { required: false }, builder: HideableSearchFormBuilder, search_params: params[:search]) do |f|
+      simple_form_for(:search, method: :get, url: path, defaults: { required: false }, builder: HideableSearchFormBuilder, search_params: params[:search] || {}) do |f|
         capture { yield(f) } + f.submit("Search")
       end
     end
     tag.div(search)
+  end
+
+  def form_errors(model)
+    return if model.errors.none?
+
+    tag.div(id: "form-error") do
+      model.errors.full_messages.join(", ")
+    end
   end
 
   def job_stats

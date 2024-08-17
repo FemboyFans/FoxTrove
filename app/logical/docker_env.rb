@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module DockerEnv
+  NEEDED_PG_VERSION = "16"
+
   module_function
 
   def exposed_vnc_port
@@ -15,8 +17,20 @@ module DockerEnv
     ENV.fetch("SELENIUM_URL")
   end
 
-  def dev_mode?
-    ENV.fetch("DEV_MODE", "false") == "true"
+  def pg_data_version
+    File.read("/docker/db_data/PG_VERSION").strip
+  rescue StandardError
+    # On first boot the entrypoint was not yet able to modify permissions of the file.
+    # Only subsequent ups will do that. The first start will have the correct version anyways
+    NEEDED_PG_VERSION
+  end
+
+  def specifies_docker_user?
+    ENV.key?("DOCKER_USER")
+  end
+
+  def specifies_deprecated_data_path?
+    ENV.key?("REVERSER_DATA_PATH")
   end
 
   def master_commit
