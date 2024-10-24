@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Scraper
   class Bluesky < Base
     STATE = :cursor
@@ -26,7 +24,7 @@ module Scraper
     def to_submission(submission)
       record = submission["record"]
       s = Submission.new
-      s.identifier = submission["cid"]
+      s.identifier = submission["uri"].split("/").last
       s.title = ""
       s.description = record["text"]
       s.created_at = DateTime.parse(record["createdAt"])

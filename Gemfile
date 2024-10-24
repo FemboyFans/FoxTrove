@@ -1,8 +1,6 @@
-# frozen_string_literal: true
-
 source "https://rubygems.org"
 
-rails_version = "~> 7.0"
+rails_version = "~> 7.2.0"
 gem "actionpack",    rails_version
 gem "actionview",    rails_version
 gem "activejob",     rails_version
@@ -37,12 +35,6 @@ group :development, :test do
   gem "minitest-spec-rails", require: false
   gem "mocha", require: false
   gem "webmock", require: false
-end
-
-group :development do
-  gem "debug"
-  gem "ruby-lsp"
-  gem "ruby-lsp-rails"
 end
 
 group :rubocop do
