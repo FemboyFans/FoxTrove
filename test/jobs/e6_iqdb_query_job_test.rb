@@ -3,7 +3,7 @@ require "test_helper"
 class E6IqdbQueryJobTest < ActiveJob::TestCase
   # Import a file, which gets assigned a reverser iqdb hash.
   # Import another file, which also gets a reverser iqdb hash.
-  # The second file is an exact md5 match to the e6 iqdb result.
+  # The second file is an exact md5 match to the femboy fans iqdb result.
   # The reverser iqdb hash of the first and second file are identical.
   # Therefore the first file is also an exact match.
   it "updates the exact match flag for an already existing visual match when the files are visually identical" do
