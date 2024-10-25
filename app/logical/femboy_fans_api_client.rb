@@ -5,7 +5,7 @@ module FemboyFansApiClient
   def iqdb_query(file)
     # FIXME: Proper rate limiting
     sleep 2 unless Rails.env.test?
-    client.post("/iqdb_queries.json", form: { file: file }).raise_for_status.json
+    client.post("/posts/iqdb.json", form: { file: file }).raise_for_status.json
   end
 
   def get_post(id)
