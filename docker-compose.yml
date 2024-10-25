@@ -48,7 +48,7 @@ services:
       - ${REVERSER_DATA_PATH:-${FOXTROVE_DATA_PATH:-./data}}/db_data:/var/lib/postgresql/data
     shm_size: 256mb
     ports:
-      - "${BIND_IP:-127.0.0.1}:${EXPOSED_POSTGRES_PORT:-34518}:5432"
+      - "${BIND_IP:-127.0.0.1}:${EXPOSED_POSTGRES_PORT:-34528}:5432"
     labels:
       - "hostname=postgresfoxtrove.containers.local"
     healthcheck:
