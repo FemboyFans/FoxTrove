@@ -321,7 +321,7 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
-  NO_GALLERY_SITES = %w[twitter].freeze
+  NO_GALLERY_SITES = %w[twitter kemono].freeze
 
   def upload_url(template) # rubocop:disable Metrics/CyclomaticComplexity
     # return nil unless e6_posts.empty?
