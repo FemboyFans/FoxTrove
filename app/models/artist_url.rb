@@ -33,7 +33,7 @@ class ArtistUrl < ApplicationRecord
     buzzly furrystation toyhouse ychart
     manual trello itaku artfol
     cohost inkblot bluesky e621
-    omorashi threads femboyfans
+    omorashi threads femboyfans kemono
   ].map.with_index { |v, index| [v, index] }.to_h
 
   def self.search(params)
