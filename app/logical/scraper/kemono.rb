@@ -8,7 +8,7 @@ module Scraper
     end
 
     def fetch_next_batch
-      response = make_request("/patreon/user/#{url_identifier}", {
+      response = make_request("/api/v1/patreon/user/#{url_identifier}", {
         o: @offset
       })
       end_reached if response.size < 50
