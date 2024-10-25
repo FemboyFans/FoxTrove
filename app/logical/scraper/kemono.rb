@@ -22,12 +22,16 @@ module Scraper
       s.title = submission["title"]
       s.description = submission["content"]
       s.created_at = DateTime.parse submission["published"]
+      files = [submission["file"], *submission["attachments"]].uniq.compact_blank
 
-      s.add_file({
-                   url: submission["file"]["name"],
-                   created_at: s.created_at,
-                   identifier: submission["id"],
-                 })
+      files.each do |file|
+        s.add_file({
+           url: "https://n1.kemono.su/data#{file['path']}?f=#{file['name']}",
+           created_at: s.created_at,
+           identifier: file["path"][8..file["path"].index(".").to_i - 1],
+         })
+      end
+
       s
     end
 
