@@ -17,8 +17,10 @@ deviantart_client_id:
 deviantart_client_secret:
 deviantart_user:
 deviantart_pass:
-e6_user:
-e6_apikey:
+e621_user:
+e621_apikey:
+femboyfans_user:
+femboyfans_apikey:
 furaffinity_user:
 furaffinity_pass:
 weasyl_apikey:

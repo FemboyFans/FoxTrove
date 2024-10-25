@@ -1,5 +1,5 @@
-module E6ApiClient
-  ORIGIN = "https://e621.net"
+module FemboyFansApiClient
+  ORIGIN = "https://femboy.fan"
   extend self
 
   def iqdb_query(file)
@@ -9,18 +9,18 @@ module E6ApiClient
   end
 
   def get_post(id)
-    client.get("/posts/#{id}.json").raise_for_status.json["post"]
+    client.get("/posts/#{id}.json").raise_for_status.json
   end
 
-  def get_posts(tags, page: 1, limit: 320)
+  def get_posts(tags, page: 1, limit: 500)
     tags = [tags] unless tags.is_a?(Array)
-    client.get("/posts.json?tags=#{tags.join('%20')}&page=#{page}&limit=#{limit}").raise_for_status.json["posts"]
+    client.get("/posts.json?tags=#{tags.join('%20')}&page=#{page}&limit=#{limit}").raise_for_status.json
   end
 
   def get_all_posts(tags)
     fetch = ->(page) {
       d = get_posts(tags, page: page)
-      if d.length == 320
+      if d.length == 500
         d += fetch.call(page + 1)
       end
       d
@@ -33,7 +33,7 @@ module E6ApiClient
   def client
     @client ||= HTTPX
       .plugin(:basic_auth)
-      .basic_auth(Config.e621_user, Config.e621_apikey)
+      .basic_auth(Config.femboyfans_user, Config.femboyfans_apikey)
       .with(origin: ORIGIN, headers: { "user-agent" => Scraper::Base::FRIENDLY_USER_AGENT })
   end
 end

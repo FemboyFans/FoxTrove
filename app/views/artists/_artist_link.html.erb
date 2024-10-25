@@ -4,7 +4,7 @@
     <%= link_to artist_url.unescaped_url_identifier, artist_path(artist_url.artist, search: { artist_url_id: [artist_url.id] }) %>
     <% if artist_url.scraper_enabled? %>
       <%= link_to "[U]", enqueue_artist_url_path(artist_url), method: :post, title: "Last scraped: #{last_scraped_at_text(artist_url)}" %>
-    <% elsif artist_url.site_type == "e621" %>
+    <% elsif artist_url.site_type == "femboyfans" %>
       <%= link_to "[U]", sync_e621_artist_path(artist_url.artist), method: :post, title: "Last scraped: #{last_scraped_at_text(artist_url)}" %>
     <% end %>
     <% if artist_url.id.in? job_stats.scraping_now %>
@@ -17,7 +17,7 @@
       [<%= job_stats.submission_download_queued[artist_url.id] %> pending
         <%= artist_url.site_type == "tumblr" ? "reblogs" : "file downloads" %>]
     <% end %>
-    <% if artist_url.site_type == "e621" && job_stats.e621_sync_queued[artist_url.id] %>
+    <% if artist_url.site_type == "femboyfans" && job_stats.e621_sync_queued[artist_url.id] %>
       [<%= job_stats.e621_sync_queued[artist_url.id] %> pending post syncs]
     <% end %>
     <% if job_stats.e6_iqdb_queued[artist_url.id] %>

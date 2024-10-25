@@ -168,27 +168,25 @@ class SubmissionFile < ApplicationRecord
 
     sample.open do |file|
       # FIXME: Error handling
-      json = E6ApiClient.iqdb_query(file)
+      json = FemboyFansApiClient.iqdb_query(file)
       break unless json.is_a? Array
 
       json.each do |entry|
-        post_id = entry["post"]["posts"]["id"]
-        post_json = E6ApiClient.get_post(post_id)
         post_entry = e6_posts.create(
-          post_id: post_json["id"],
-          post_width: post_json["file"]["width"],
-          post_height: post_json["file"]["height"],
-          post_size: post_json["file"]["size"],
-          post_is_deleted: post_json["flags"]["deleted"],
-          post_json: post_json,
+          post_id: entry.dig("post", "id"),
+          post_width: entry.dig("post", "file", "width"),
+          post_height: entry.dig("post", "file", "height"),
+          post_size: entry.dig("post", "file", "size"),
+          post_is_deleted: entry.dig("post", "flags", "deleted"),
+          post_json: entry["post"],
           similarity_score: entry["score"],
-          is_exact_match: md5 == post_json["file"]["md5"] || existing_matches(post_json["id"], is_exact_match: true).any?,
+          is_exact_match: md5 == entry.dig("post", "file", "md5") || existing_matches(entry.dig("post", "id"), is_exact_match: true).any?,
         )
 
         # Check if there are entries which were previously added
         # that are an exact visual match to this newly added exact match
         if post_entry.is_exact_match
-          existing_matches(post_json["id"], is_exact_match: false).find_each do |existing_match|
+          existing_matches(entry.dig("post", "id"), is_exact_match: false).find_each do |existing_match|
             existing_match.update(is_exact_match: true)
           end
         end
@@ -335,7 +333,7 @@ class SubmissionFile < ApplicationRecord
     description = artist_submission.description_on_site.empty? ? "" : "&description=#{CGI.escape("[quote]\n#{artist_submission.description_on_site}\n[/quote]")}"
     tags = [created_at_on_site.year]
     arttags = "&tags-artist=#{artist.e621_tag}" if artist.e621_tag.present?
-    @upload_url ||= "https://e621.net/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join("+")}#{arttags}"
+    @upload_url ||= "https://femboy.fan/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join('+')}#{arttags}"
   end
 
   def self.find_by_md5(md5)

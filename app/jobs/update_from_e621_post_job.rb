@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class UpdateFromE621PostJob < ApplicationJob
   queue_as :e621_sync
 

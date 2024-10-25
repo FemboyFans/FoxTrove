@@ -1,0 +1,9 @@
+type: SimpleDefinition
+enum_value: femboyfans
+display_name: Femboy Fans
+homepage: https://femboy.fan
+gallery_templates:
+  - femboy.fan/tags/{site_artist_identifier}
+username_identifier_regex: "*{,32}"
+submission_template: https://femboy.fan/posts/{site_submission_identifier}
+

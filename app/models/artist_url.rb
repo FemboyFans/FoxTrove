@@ -33,7 +33,7 @@ class ArtistUrl < ApplicationRecord
     buzzly furrystation toyhouse ychart
     manual trello itaku artfol
     cohost inkblot bluesky e621
-    omorashi threads
+    omorashi threads femboyfans
   ].map.with_index { |v, index| [v, index] }.to_h
 
   def self.search(params)
@@ -82,7 +82,7 @@ class ArtistUrl < ApplicationRecord
   end
 
   def enqueue_scraping
-    return sync_e621 if site_type == "e621"
+    return sync_e621 if site_type == "femboyfans"
     return unless scraper_enabled?
     raise MissingApiIdentifier.new(url_identifier, site_type) unless api_identifier
 
@@ -90,7 +90,8 @@ class ArtistUrl < ApplicationRecord
   end
 
   def sync_e621
-    return unless site_type == "e621"
+    return unless site_type == "femboyfans"
+
     artist.sync_e621
   end
 end

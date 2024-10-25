@@ -57,8 +57,8 @@ Samples: <span id="storage.samples"><%= number_to_human_size(@sample_size) %></s
 
 Pending Scraping: <span id="jobs.scraping"><%= job_stats.scraping_queued.values.sum %></span><br>
 Pending Submission File Downloads: <span id="jobs.file_downloads"><%= job_stats.submission_download_queued.values.sum %></span><br>
-Pending E621 IQDB Calls: <span id="jobs.iqdb"><%= job_stats.e6_iqdb_queued.values.sum %></span><br>
-Pending E621 Post Syncs: <span id="jobs.post_sync"><%= job_stats.e621_sync_queued.values.sum %></span><br>
+Pending FemboyFans IQDB Calls: <span id="jobs.iqdb"><%= job_stats.e6_iqdb_queued.values.sum %></span><br>
+Pending FemboyFans Post Syncs: <span id="jobs.post_sync"><%= job_stats.e621_sync_queued.values.sum %></span><br>
 <br>
 <div id="artist-urls-list">
   <%= render "artist_urls/list", artist_urls: ArtistUrl.where(id: job_stats.active_urls) %>

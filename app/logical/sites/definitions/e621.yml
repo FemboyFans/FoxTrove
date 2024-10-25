@@ -1,7 +1,8 @@
-type: SimpleDefinition
+type: ScraperDefinition
 enum_value: e621
 display_name: E621
 homepage: https://e621.net
 gallery_templates:
-  - e621.net/artists/{site_artist_identifier}
+  - e621.net/tags/{site_artist_identifier}
 username_identifier_regex: "*{,32}"
+submission_template: https://e621.net/posts/{site_submission_identifier}

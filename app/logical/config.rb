@@ -55,7 +55,7 @@ module Config
   end
 
   def missing_values
-    %i[e6_user e6_apikey].select { |key| send(key).blank? }
+    %i[femboyfans_user femboyfans_apikey].select { |key| send(key).blank? }
   end
 
   def method_missing(method)

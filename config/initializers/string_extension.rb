@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class String
   def truthy?
     match?(/\A(true|t|yes|y|on|1)\z/i)

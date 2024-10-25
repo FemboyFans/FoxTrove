@@ -73,7 +73,7 @@ class Artist < ApplicationRecord
   end
 
   def e621_url
-    artist_urls.find_by(site_type: "e621")
+    artist_urls.find_by(site_type: "femboyfans")
   end
 
   def sync_e621

@@ -45,6 +45,7 @@ You can also search for non-uploaded submission for artists. How well this works
 * <img src="public/icons/9-tumblr.png" width="16px" height="16px"> Tumblr ([see notes](#tumblr))
 * <img src="public/icons/0-twitter.png" width="16px" height="16px"> Twitter
 * <img src="public/icons/8-weasyl.png" width="16px" height="16px"> Weasyl
+* <img src="public/icons/51-e621.png" width="16px" height="16px"> E621
 <!--- sites:stop -->
 
 ### Tumblr
