@@ -6,4 +6,4 @@ gallery_templates:
   - weasyl.com/~{site_artist_identifier}
   - weasyl.com/profile/{site_artist_identifier}
 username_identifier_regex: "[a-zA-Z0-9]{1,25}"
-submission_template: https://www.weasyl.com/~{site_artist_identifier}/submissions/{site_submission_identifier}
+submission_template: https://weasyl.com/~{site_artist_identifier}/submissions/{site_submission_identifier}
