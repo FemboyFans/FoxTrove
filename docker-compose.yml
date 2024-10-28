@@ -22,7 +22,7 @@ services:
         --outdir=public/build --loader:.png=file
         --entry-names=[name]-[hash] --metafile=public/build/manifest.json
         --watch=forever --color=true
-      GOOD_JOB_EXEC: bundle exec good_job --queues=e621_sync:5;scraping:1;e6_iqdb:1;variant_generation:5;default:1;submission_download:5
+      GOOD_JOB_EXEC: bundle exec good_job --queues=e621_sync:2;scraping:3;e6_iqdb:1;variant_generation:5;default:3;submission_download:6
     volumes:
       - .:/app
       - ${REVERSER_DATA_PATH:-${FOXTROVE_DATA_PATH:-./data}}/active_storage:/app/public/storage
