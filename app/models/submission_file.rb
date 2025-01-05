@@ -163,32 +163,33 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
+  def external_url
+    "https://rfs.femboy.fan" + url_for(:original, disposition: :inline)
+  end
+
   def update_e6_posts!
     e6_posts.destroy_all
 
-    sample.open do |file|
-      # FIXME: Error handling
-      json = FemboyFansApiClient.iqdb_query(file)
-      break unless json.is_a? Array
+    json = FemboyFansApiClient.iqdb_query(url: external_url)
+    return unless json.is_a?(Array)
 
-      json.each do |entry|
-        post_entry = e6_posts.create(
-          post_id: entry.dig("post", "id"),
-          post_width: entry.dig("post", "file", "width"),
-          post_height: entry.dig("post", "file", "height"),
-          post_size: entry.dig("post", "file", "size"),
-          post_is_deleted: entry.dig("post", "flags", "deleted"),
-          post_json: entry["post"],
-          similarity_score: entry["score"],
-          is_exact_match: md5 == entry.dig("post", "file", "md5") || existing_matches(entry.dig("post", "id"), is_exact_match: true).any?,
-        )
+    json.each do |entry|
+      post_entry = e6_posts.create(
+        post_id: entry.dig("post", "id"),
+        post_width: entry.dig("post", "file", "width"),
+        post_height: entry.dig("post", "file", "height"),
+        post_size: entry.dig("post", "file", "size"),
+        post_is_deleted: entry.dig("post", "flags", "deleted"),
+        post_json: entry["post"],
+        similarity_score: entry["score"],
+        is_exact_match: md5 == entry.dig("post", "file", "md5") || existing_matches(entry.dig("post", "id"), is_exact_match: true).any?,
+      )
 
-        # Check if there are entries which were previously added
-        # that are an exact visual match to this newly added exact match
-        if post_entry.is_exact_match
-          existing_matches(entry.dig("post", "id"), is_exact_match: false).find_each do |existing_match|
-            existing_match.update(is_exact_match: true)
-          end
+      # Check if there are entries which were previously added
+      # that are an exact visual match to this newly added exact match
+      if post_entry.is_exact_match
+        existing_matches(entry.dig("post", "id"), is_exact_match: false).find_each do |existing_match|
+          existing_match.update(is_exact_match: true)
         end
       end
     end

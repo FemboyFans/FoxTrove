@@ -2,8 +2,14 @@ module FemboyFansApiClient
   ORIGIN = "https://femboy.fan"
   extend self
 
-  def iqdb_query(file)
-    client.post("/posts/iqdb.json", form: { file: file }).raise_for_status.json
+  def iqdb_query(file: nil, url: nil)
+    if file
+      client.post("/posts/iqdb.json", form: { file: file }).raise_for_status.json
+    elsif url
+      client.post("/posts/iqdb.json", form: { url: url }).raise_for_status.json
+    else
+      raise(ArgumentError, "either file or url must be provided")
+    end
   end
 
   def get_post(id)
