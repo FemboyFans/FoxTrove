@@ -1,6 +1,9 @@
 class E6IqdbQueryJob < ConcurrencyControlledJob
   queue_as :e6_iqdb
-  good_job_control_concurrency_with(total_limit: 1)
+  good_job_control_concurrency_with(
+    total_limit: -> { "unique-job-#{arguments.first.id}" },
+    perform_limit: 1
+  )
 
   PRIORITIES = {
     immediate: 0,
