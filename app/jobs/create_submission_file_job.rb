@@ -16,6 +16,8 @@ class CreateSubmissionFileJob < ConcurrencyControlledJob
         created_at: file[:created_at],
         file_identifier: file[:identifier],
       )
+    rescue SubmissionFile::ContentTypeError, SubmissionFile::AnalysisError => e
+      Rails.logger.error("Error downloading file: #{e.class.name} #{e.message}")
     end
   end
 end

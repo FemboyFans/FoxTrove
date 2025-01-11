@@ -1,4 +1,7 @@
 class SubmissionFile < ApplicationRecord
+  class AnalysisError < StandardError; end
+  class ContentTypeError < StandardError; end
+
   belongs_to :artist_submission
   has_one :artist, through: :artist_submission
   has_many :e6_posts, dependent: :destroy
@@ -93,10 +96,11 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
+
   def attach_original_from_blob!(blob)
     blob.analyze
-    raise StandardError, "Failed to analyze" if blob.content_type == "application/octet-stream"
-    raise StandardError, "'#{blob.content_type}' is not allowed" if blob.content_type.in? Scraper::Submission::MIME_IGNORE
+    raise(AnalysisError, "Failed to analyze") if blob.content_type == "application/octet-stream"
+    raise(ContentTypeError, "'#{blob.content_type}' is not allowed") if blob.content_type.in?(Scraper::Submission::MIME_IGNORE)
 
     self.width = blob.metadata[:width]
     self.height = blob.metadata[:height]
