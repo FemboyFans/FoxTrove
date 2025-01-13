@@ -337,7 +337,17 @@ class SubmissionFile < ApplicationRecord
     file_url = direct_url.starts_with?("file://") || direct_url.include?("wixmp.com") ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = artist_submission.description_on_site.empty? ? "" : "&description=#{CGI.escape("[quote]\n#{artist_submission.description_on_site}\n[/quote]")}"
     tags = [created_at_on_site.year]
-    arttags = "&tags-artist=#{artist.e621_tag}" if artist.e621_tag.present?
+    arttags = ""
+    if artist.e621_tag.present?
+      if artist.is_commissioner?
+        post = E6ApiClient.get_post(artist_submission.identifier_on_site.to_i) rescue nil
+        arttags = "&tags-artist=#{post['tags']['artist']}" if post.present? && post['tags']['artist'].any?
+        tags << artist.e621_tag
+      else
+        arttags = "&tags-artist=#{artist.e621_tag}"
+      end
+
+    end
     @upload_url ||= "https://femboy.fan/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join('+')}#{arttags}"
   end
 
