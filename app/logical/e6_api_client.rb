@@ -12,9 +12,27 @@ module E6ApiClient
     client.get("/posts/#{id}.json").raise_for_status.json["post"]
   end
 
+  def get_post_cached(id)
+    Rails.cache.fetch("e6post:#{id}", expires_in: 7.days) do
+      get_post(id)
+    end
+  end
+
   def get_posts(tags, page: 1, limit: 320)
     tags = [tags] unless tags.is_a?(Array)
     client.get("/posts.json?tags=#{tags.join('%20')}&page=#{page}&limit=#{limit}").raise_for_status.json["posts"]
+  end
+
+  def get_posts_cached(ids)
+    uncached = ids.reject { |id| Rails.cache.exist?("e6post:#{id}") }
+    posts = []
+    uncached.each_slice(100) do |slice|
+      posts += E6ApiClient.get_posts(%W[id:#{slice.join(',')} status:any], limit: 100).compact_blank
+    end
+    posts.each do |post|
+      Rails.cache.write("e6post:#{post['id']}", post, expires_in: 7.days)
+    end
+    ids.map { |id| Rails.cache.read("e6post:#{id}") }
   end
 
   def get_all_posts(tags)

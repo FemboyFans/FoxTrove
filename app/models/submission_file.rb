@@ -340,8 +340,8 @@ class SubmissionFile < ApplicationRecord
     arttags = ""
     if artist.e621_tag.present?
       if artist.is_commissioner?
-        post = E6ApiClient.get_post(artist_submission.identifier_on_site.to_i) rescue nil
-        arttags = "&tags-artist=#{post['tags']['artist']}" if post.present? && post['tags']['artist'].any?
+        post = E6ApiClient.get_post_cached(artist_submission.identifier_on_site.to_i) rescue nil
+        arttags = "&tags-artist=#{post['tags']['artist'].join("+")}" if post.present? && post['tags']['artist'].any?
         tags << artist.e621_tag
       else
         arttags = "&tags-artist=#{artist.e621_tag}"
