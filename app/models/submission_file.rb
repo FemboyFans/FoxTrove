@@ -336,15 +336,20 @@ class SubmissionFile < ApplicationRecord
     sources = sources.map { |source| CGI.escape(source) }.join(",")
     file_url = direct_url.starts_with?("file://") || direct_url.include?("wixmp.com") ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = artist_submission.description_on_site.empty? ? "" : "&description=#{CGI.escape("[quote]\n#{artist_submission.description_on_site}\n[/quote]")}"
-    tags = [created_at_on_site.year]
+    tags = %W[meta:#{created_at_on_site.year}]
     arttags = ""
     if artist.e621_tag.present?
       if artist.is_commissioner?
         post = E6ApiClient.get_post_cached(artist_submission.identifier_on_site.to_i) rescue nil
-        arttags = "&tags-artist=#{post['tags']['artist'].join("+")}" if post.present? && post['tags']['artist'].any?
-        tags << artist.e621_tag
+        arttags = "&tags-artist=#{post['tags']['artist'].map { |t| "artist:#{t}" }.join("+")}" if post.present? && post['tags']['artist'].any?
+        category = post["tags"].find { |k, v| v.include?(artist.e621_tag) }.first
+        if category && !%w[general contributor].include?(category)
+          tags << "#{category}:#{artist.e621_tag}"
+        else
+          tags << artist.e621_tag
+        end
       else
-        arttags = "&tags-artist=#{artist.e621_tag}"
+        arttags = "&tags-artist=artist:#{artist.e621_tag}"
       end
 
     end
