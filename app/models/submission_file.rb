@@ -331,7 +331,7 @@ class SubmissionFile < ApplicationRecord
   def upload_url(template) # rubocop:disable Metrics/CyclomaticComplexity
     # return nil unless e6_posts.empty?
     sources = []
-    sources << template.gallery_url(artist_url) unless NO_GALLERY_SITES.include?(artist_url.site_type)
+    sources << template.gallery_url(artist_url) unless NO_GALLERY_SITES.include?(artist_url.site_type) || (artist.is_commissioner? && artist_url.site_type == "e621")
     sources << template.submission_url(artist_submission)
     sources = sources.map { |source| CGI.escape(source) }.join(",")
     file_url = direct_url.starts_with?("file://") || direct_url.include?("wixmp.com") ? "" : "upload_url=#{CGI.escape(direct_url)}&"
