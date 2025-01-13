@@ -338,11 +338,11 @@ class SubmissionFile < ApplicationRecord
     description = artist_submission.description_on_site.empty? ? "" : "&description=#{CGI.escape("[quote]\n#{artist_submission.description_on_site}\n[/quote]")}"
     tags = %W[meta:#{created_at_on_site.year}]
     arttags = ""
-    if artist.e621_tag.present?
+    if artist.e621_tag.present? && artist_url.site_type == "e621"
       if artist.is_commissioner?
         post = E6ApiClient.get_post_cached(artist_submission.identifier_on_site.to_i) rescue nil
         arttags = "&tags-artist=#{post['tags']['artist'].map { |t| "artist:#{t}" }.join("+")}" if post.present? && post['tags']['artist'].any?
-        category = post["tags"].find { |k, v| v.include?(artist.e621_tag) }.first
+        category = post["tags"].find { |_k, v| v.include?(artist.e621_tag) }.first
         if category && !%w[general contributor].include?(category)
           tags << "#{category}:#{artist.e621_tag}"
         else
