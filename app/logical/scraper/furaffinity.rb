@@ -88,7 +88,9 @@ module Scraper
     end
 
     def get_submission_html(id)
-      fetch_html("https://www.furaffinity.net/view/#{id}", headers: headers)
+      response = @client.get("https://www.furaffinity.net/view/#{id}", headers: headers)
+      html = response.body.to_s.gsub(%r{<a href="\/user\/(.*)" class="iconusername"><img.+>.*<\/a>}) { $1 }
+      Nokogiri::HTML(html)
     end
 
     def submission_timestamp(html)
