@@ -10,7 +10,7 @@ class UpdateFromE621PostJob < ApplicationJob
     results = IqdbProxy.query_url(post.dig("sample", "url"))
 
     results.each do |res|
-      next unless res[:score] > 90
+      next unless res[:score] > 60
 
       sub = res[:submission_file]
       sub.e6_posts.destroy_all
