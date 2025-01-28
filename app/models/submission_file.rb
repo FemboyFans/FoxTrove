@@ -285,6 +285,7 @@ class SubmissionFile < ApplicationRecord
       end
       notices << { type: :different_type, file: file } if file.content_type != content_type
       notices << { type: :larger_filesize, file: file } if file.size > size
+      notices << { type: :different_site, file: file } if file.artist_url.id != artist_url.id
     end
 
     largest_size = {}
@@ -321,6 +322,8 @@ class SubmissionFile < ApplicationRecord
       "DT-#{Mime::Type.lookup(sim[:file].content_type).symbol.to_s.upcase}"
     when :larger_filesize
       "LF (#{template.number_to_human_size(sim[:file].size)})"
+    when :different_site
+      "DS"
     else
       "Unknown similarity type: :#{sim[:type]} for submission #{sim[:file].id}"
     end
@@ -366,6 +369,11 @@ class SubmissionFile < ApplicationRecord
 
     end
     @upload_url ||= "https://femboy.fan/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join('+')}#{arttags}"
+  end
+
+  def iqdb_similar
+    return IqdbProxy.query_submission_file(self) if can_iqdb? && sample_generated?
+    []
   end
 
   def self.find_by_md5(md5)

@@ -37,9 +37,15 @@
     </div>
   <% end %>
   <% submission_file.similar.each do |grp| %>
-    <div classs="larger-links-<%= grp.first[:file].id %>">
+    <div class="larger-links-<%= grp.first[:file].id %>">
       <% grp.each do |sim| %>
-        <%= link_to submission_file.similar_text(sim, self), submission_file_path(sim[:file]) %>
+        <% if sim[:type] == :different_site %>
+          <%= site_icon(sim[:file].artist_url) do %>
+            <%= link_to submission_file.similar_text(sim, self), submission_file_path(sim[:file]) %>
+          <% end %>
+        <% else %>
+          <%= link_to submission_file.similar_text(sim, self), submission_file_path(sim[:file]) %>
+        <% end %>
       <% end %>
     </div>
   <% end %>
