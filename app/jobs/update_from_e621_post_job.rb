@@ -7,7 +7,9 @@ class UpdateFromE621PostJob < ApplicationJob
     create_e6_post(sub, post) if sub.present?
     return unless VALID_EXTENSIONS.include?(post.dig("file", "ext"))
 
-    results = IqdbProxy.query_url(post.dig("sample", "url"))
+    sample = post["samples"].find { |s| s["type"] == "large" }
+    sample_url = sample&.[]("url") || post.dig("file", "url")
+    results = IqdbProxy.query_url(sample_url)
 
     results.each do |res|
       next unless res[:score] > 60
