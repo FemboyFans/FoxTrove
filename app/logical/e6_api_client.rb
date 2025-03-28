@@ -48,8 +48,12 @@ module E6ApiClient
   end
 
   def get_unimplied_tags(tags)
-    tags = tags.join(" ") unless tags.is_a?(Array)
-    tags_client.get("/get?tags=#{tags}&basic=true").raise_for_status.json["tags"]
+    tags = tags.join(" ") if tags.is_a?(Array)
+    k = "uitags:#{tags.gsub(' ', '_')}"
+    return Rails.cache.read(c) if Rails.cache.exist?(c)
+    list = tags_client.get("/get?tags=#{tags}&basic=true").raise_for_status.json["tags"]
+    Rails.cache.write(k, list, expires_in: 30.days)
+    list
   end
 
   private
