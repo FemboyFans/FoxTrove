@@ -1,5 +1,6 @@
 module E6ApiClient
   ORIGIN = "https://e621.net"
+  TAGS_ORIGIN = "https://e621-tags.furry.cool"
   extend self
 
   def iqdb_query(file)
@@ -46,6 +47,11 @@ module E6ApiClient
     fetch.call(1)
   end
 
+  def get_unimplied_tags(tags)
+    tags = tags.join(" ") unless tags.is_a?(Array)
+    tags_client.get("/get?tags=#{tags}&basic=true").raise_for_status.json["tags"]
+  end
+
   private
 
   def client
@@ -53,5 +59,10 @@ module E6ApiClient
       .plugin(:basic_auth)
       .basic_auth(Config.e621_user, Config.e621_apikey)
       .with(origin: ORIGIN, headers: { "user-agent" => Scraper::Base::FRIENDLY_USER_AGENT })
+  end
+
+  def tags_client
+    @tags_client ||= HTTPX
+      .with(origin: TAGS_ORIGIN, headers: { "user-agent" => Scraper::Base::FRIENDLY_USER_AGENT })
   end
 end
