@@ -362,28 +362,42 @@ class SubmissionFile < ApplicationRecord
       end
       description = "&description=#{CGI.escape(description)}"
     end
-    tags = %W[meta:#{created_at_on_site.year}]
-    arttags = ""
+    tags = []
+    extra = ""
     if artist.e621_tag.present?
       if artist_url.site_type == "e621"
+        post = E6ApiClient.get_post_cached(artist_submission.identifier_on_site.to_i) rescue nil
         if artist.is_commissioner?
-          post = E6ApiClient.get_post_cached(artist_submission.identifier_on_site.to_i) rescue nil
-          arttags = "&tags-artist=#{post['tags']['artist'].map { |t| "artist:#{t}" }.join("+")}" if post.present? && post['tags']['artist'].any?
+          extra += "&tags-artist=#{post['tags']['artist'].map { |t| "artist:#{t}" }.join("+")}" if post.present? && post['tags']['artist'].any?
           category = post["tags"].find { |_k, v| v.include?(artist.e621_tag) }.first
-          if category && !%w[general contributor].include?(category)
+          if category && !%w[general].include?(category)
             tags << "#{category}:#{artist.e621_tag}"
           else
             tags << artist.e621_tag
           end
         else
-          arttags = "&tags-artist=artist:#{artist.e621_tag}"
+          extra += "&tags-artist=artist:#{artist.e621_tag}"
+        end
+        if post["tags"]["characters"].present?
+          extra += "&tags-character=#{post['tags']['characters'].map { |t| "character:#{t}" }.join("+")}"
+        end
+        if post["tags"]["meta"].present?
+          year = post["tags"]["meta"].find { |v| %r{\A\d{4}\z}.match?(v) }
+          tags << "meta:#{year}" if year
+        else
+          tags << "meta:#{created_at_on_site.year}"
         end
       else
-        tags << artist.e621_tag
+        if artist.is_commissioner?
+          tags << artist.e621_tag
+        else
+          extra += "&tags-artist=artist:#{artist.e621_tag}"
+        end
+        tags << "meta:#{created_at_on_site.year}"
       end
 
     end
-    @upload_url ||= "https://femboy.fan/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join('+')}#{arttags}"
+    @upload_url ||= "https://femboy.fan/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join('+')}#{extra}"
   end
 
   def iqdb_similar
