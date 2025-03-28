@@ -19,11 +19,11 @@ class SubmissionFile < ApplicationRecord
   scope :with_attached, -> { with_attached_sample.with_attached_original }
   scope :with_everything, -> { with_attached.includes(:relevant_e6_posts, artist_submission: :artist_url) }
 
-  scope :larger_iqdb_filesize_kb_exists, ->(treshold) { select_from_e6_posts_where_exists("size - ? > post_size and not post_is_deleted", treshold) }
-  scope :larger_iqdb_filesize_percentage_exists, ->(treshold) { select_from_e6_posts_where_exists("size - (size / 100 * ?) > post_size and not post_is_deleted", treshold) }
+  scope :larger_iqdb_filesize_kb_exists, ->(threshold) { select_from_e6_posts_where_exists("size - ? > post_size and not post_is_deleted", threshold) }
+  scope :larger_iqdb_filesize_percentage_exists, ->(threshold) { select_from_e6_posts_where_exists("size - (size / 100 * ?) > post_size and not post_is_deleted", threshold) }
   scope :smaller_iqdb_filesize_doesnt_exist, -> { select_from_e6_posts_where_not_exists("size <= post_size") }
-  scope :larger_only_filesize_kb, ->(treshold) { larger_iqdb_filesize_kb_exists(treshold).smaller_iqdb_filesize_doesnt_exist.exact_match_doesnt_exist }
-  scope :larger_only_filesize_percentage, ->(treshold) { larger_iqdb_filesize_percentage_exists(treshold).smaller_iqdb_filesize_doesnt_exist.exact_match_doesnt_exist }
+  scope :larger_only_filesize_kb, ->(threshold) { larger_iqdb_filesize_kb_exists(threshold).smaller_iqdb_filesize_doesnt_exist.exact_match_doesnt_exist }
+  scope :larger_only_filesize_percentage, ->(threshold) { larger_iqdb_filesize_percentage_exists(threshold).smaller_iqdb_filesize_doesnt_exist.exact_match_doesnt_exist }
 
   scope :larger_iqdb_dimensions_exist, -> { select_from_e6_posts_where_exists("width > post_width and height > post_height and not post_is_deleted") }
   scope :smaller_iqdb_dimensions_dont_exist, -> { select_from_e6_posts_where_not_exists("width <= post_width and height <= post_height") }
@@ -237,17 +237,32 @@ class SubmissionFile < ApplicationRecord
         q = q.join_attribute_matches(params[:artist_url_id], artist_submission: { artist_url: :id })
         q = q.join_attribute_matches(params[:artist_id], artist_submission: { artist_url: { artist: :id } })
         q = q.join_attribute_matches(params[:site_type], artist_submission: { artist_url: :site_type })
-        q.order(created_at_on_site: :desc, file_identifier: :desc)
+        case params[:order]
+        when "filesize_asc", "size_asc"
+          q.order(size: :asc, created_at_on_site: :desc, file_identifier: :desc)
+        when "filesize_desc", "filesize", "size_desc", "size"
+          q.order(size: :desc, created_at_on_site: :desc, file_identifier: :desc)
+        when "width_asc"
+          q.order(width: :asc, created_at_on_site: :desc, file_identifier: :desc)
+        when "width_desc", "width"
+          q.order(width: :desc, created_at_on_site: :desc, file_identifier: :desc)
+        when "height_asc"
+          q.order(height: :asc, created_at_on_site: :desc, file_identifier: :desc)
+        when "height_desc", "height"
+          q.order(height: :desc, created_at_on_site: :desc, file_identifier: :desc)
+        else
+          q.order(created_at_on_site: :desc, file_identifier: :desc)
+        end
       end
 
       def status_search(params)
         if params[:upload_status].present?
           case params[:upload_status]
           when "larger_only_filesize_kb"
-            size = (params[:larger_only_filesize_treshold] || 50).to_i.kilobytes
+            size = (params[:larger_only_filesize_threshold] || 50).to_i.kilobytes
             send(params[:upload_status], size)
           when "larger_only_filesize_percentage"
-            size = (params[:larger_only_filesize_treshold] || 10).to_i
+            size = (params[:larger_only_filesize_threshold] || 10).to_i
             send(params[:upload_status], size)
           when "larger_only_dimensions", "exact_match_exists", "already_uploaded", "not_uploaded"
             send(params[:upload_status])
@@ -260,7 +275,7 @@ class SubmissionFile < ApplicationRecord
       end
 
       def search_params
-        [:artist_id, :site_type, :upload_status, :corrupt, :zero_sources, :zero_artists, :larger_only_filesize_treshold, :content_type, :title, :description, { artist_url_id: [] }, :in_backlog]
+        [:artist_id, :site_type, :upload_status, :corrupt, :zero_sources, :zero_artists, :larger_only_filesize_threshold, :content_type, :title, :description, { artist_url_id: [] }, :in_backlog, :order]
       end
 
       def pagy(params)

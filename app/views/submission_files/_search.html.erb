@@ -9,10 +9,10 @@
     ["Exact Match", "exact_match_exists"],
     ["Not Uploaded", "not_uploaded"],
   ], include_blank: true %>
-  <%= f.input :larger_only_filesize_treshold, label: "Larger Only Treshold" %>
+  <%= f.input :larger_only_filesize_threshold, label: "Larger Only Threshold" %>
   <%= f.input :content_type, collection: [
-    ["Animation Only", "video/mp4,video/webm,video/quicktime,image/gif"],
-    ["Pictures Only", "image/png,image/jpeg,"],
+    ["Videos Only", "video/mp4,video/webm,video/quicktime,image/gif"],
+    ["Images Only", "image/png,image/jpeg,image/gif,image/webp"],
   ], include_blank: true %>
   <%= f.input :site_type, label: "Site", collection: site_types_collection, include_blank: true %>
   <%= f.input :in_backlog, label: "In Backlog?", collection: [
@@ -24,4 +24,12 @@
   <%= f.input :corrupt, as: :boolean %>
   <%= f.input :zero_sources, as: :boolean %>
   <%= f.input :zero_artists, as: :boolean %>
+  <%= f.input :order, collection: [
+    ["Largest Size", "size_desc"],
+    ["Smallest Size", "size_asc"],
+    %w[Widest width_desc],
+    %w[Narrowest width_asc],
+    %w[Tallest height_desc],
+    %w[Shortest height_asc],
+  ], include_blank: true %>
 <% end %>

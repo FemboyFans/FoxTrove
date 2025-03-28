@@ -108,8 +108,8 @@ class SubmissionFileTest < ActiveSupport::TestCase
       sm2 = create(:submission_file, size: 60.kilobytes)
       create(:e6_post, submission_file: sm2, post_size: 50.kilobytes)
 
-      assert_equal([sm2, sm1], SubmissionFile.search(upload_status: "larger_only_filesize_kb", larger_only_filesize_treshold: 5))
-      assert_equal([sm1], SubmissionFile.search(upload_status: "larger_only_filesize_kb", larger_only_filesize_treshold: 50))
+      assert_equal([sm2, sm1], SubmissionFile.search(upload_status: "larger_only_filesize_kb", larger_only_filesize_threshold: 5))
+      assert_equal([sm1], SubmissionFile.search(upload_status: "larger_only_filesize_kb", larger_only_filesize_threshold: 50))
     end
 
     it "returns results for larger by filesize relative" do
@@ -118,8 +118,8 @@ class SubmissionFileTest < ActiveSupport::TestCase
       sm2 = create(:submission_file, size: 1.megabyte)
       create(:e6_post, submission_file: sm2, post_size: 0.85.megabytes)
 
-      assert_equal([sm2, sm1], SubmissionFile.search(upload_status: "larger_only_filesize_percentage", larger_only_filesize_treshold: 10))
-      assert_equal([sm1], SubmissionFile.search(upload_status: "larger_only_filesize_percentage", larger_only_filesize_treshold: 40))
+      assert_equal([sm2, sm1], SubmissionFile.search(upload_status: "larger_only_filesize_percentage", larger_only_filesize_threshold: 10))
+      assert_equal([sm1], SubmissionFile.search(upload_status: "larger_only_filesize_percentage", larger_only_filesize_threshold: 40))
     end
 
     it "returns results for larger by dimensions" do
