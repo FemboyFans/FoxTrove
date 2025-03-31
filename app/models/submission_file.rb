@@ -351,7 +351,6 @@ class SubmissionFile < ApplicationRecord
     sources = []
     sources << template.gallery_url(artist_url) unless NO_GALLERY_SITES.include?(artist_url.site_type) || (artist.is_commissioner? && artist_url.site_type == "e621")
     sources << template.submission_url(artist_submission)
-    sources = sources.map { |source| CGI.escape(source) }.join(",")
     file_url = direct_url.starts_with?("file://") || direct_url.include?("wixmp.com") ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = ""
     if artist_submission.description_on_site.present?
@@ -390,6 +389,7 @@ class SubmissionFile < ApplicationRecord
         else
           tags << "meta:#{created_at_on_site.year}"
         end
+        sources += post["sources"].reject { |s| %w[png jpg jpeg webm webp gif mp4].any? { |ext| s.ends_with?(ext) } || %w[://pbs.twing.com].any? { |domain| s.include?(domain) } }
       else
         if artist.is_commissioner?
           tags << artist.e621_tag
@@ -400,7 +400,8 @@ class SubmissionFile < ApplicationRecord
       end
 
     end
-    @upload_url ||= "https://femboy.fan/uploads/new?#{file_url}sources=#{sources}&#{description}&tags=#{tags.join('+')}#{extra}"
+    sources = sources.map { |source| CGI.escape(source) }.join(",")
+    @upload_url ||= "https://femboy.fan/uploads/new?#{file_url}sources=#{sources}#{description}&tags=#{tags.join('+')}#{extra}"
   end
 
   def iqdb_similar
