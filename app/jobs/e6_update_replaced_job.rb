@@ -6,7 +6,7 @@ class E6UpdateReplacedJob < ApplicationJob
       submission = artist_url.submissions.find_by(identifier_on_site: post["id"])
       files = submission&.submission_files
       next if submission.blank? || files.blank? || files.any? { |f| f.md5 == post["file"]["md5"] }
-      sub = to_submission(submission)
+      sub = submission.to_scraper_submission
       sub.add_file({
         url: post["file"]["url"],
         created_at: E6ApiClient.get_replacements(md5: post["file"]["md5"]).first&.[]("updated_at") || DateTime.parse(post["file"]["created_at"]),
