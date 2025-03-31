@@ -19,4 +19,13 @@ class ArtistSubmission < ApplicationRecord
     self.description_on_site = description if description.present?
     save!
   end
+
+  def to_scraper_submission
+    s = Scraper::Submission.new
+    s.identifier = identifier_on_site
+    s.title = title_on_site
+    s.description = description_on_site
+    s.created_at = created_at_on_site
+    s
+  end
 end

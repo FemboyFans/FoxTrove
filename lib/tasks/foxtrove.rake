@@ -14,4 +14,10 @@ namespace :foxtrove do
       artist_url.update(api_identifier: artist_url.scraper.fetch_api_identifier)
     end
   end
+
+  task update_e6_replaced_posts: :environment do
+    ArtistUrl.where(site_type: "e621").find_each do |artist_url|
+      artist_url.update_e6_replaced
+    end
+  end
 end

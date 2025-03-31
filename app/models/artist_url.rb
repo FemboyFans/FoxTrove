@@ -94,4 +94,9 @@ class ArtistUrl < ApplicationRecord
 
     artist.sync_e621
   end
+
+  def update_e6_replaced
+    return unless site_type == "e621"
+    E6UpdateReplacedJob.perform_later(self)
+  end
 end

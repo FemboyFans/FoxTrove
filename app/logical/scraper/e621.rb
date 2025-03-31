@@ -28,7 +28,7 @@ module Scraper
       s.add_file({
         url: submission["file"]["url"],
         created_at: s.created_at,
-        identifier: submission["id"],
+        identifier: submission["file"]["md5"],
       })
       s
     end
