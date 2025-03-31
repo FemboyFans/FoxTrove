@@ -47,6 +47,15 @@ module E6ApiClient
     fetch.call(1)
   end
 
+  def get_replacements(id: nil, md5: nil, post_id: nil, status: nil)
+    url = "/post_replacements.json?"
+    url += "search[id]=#{id}&" if id
+    url += "search[md5]=#{md5}&" if md5
+    url += "search[post_id]=#{post_id}&" if post_id
+    url += "search[status]=#{status}&" if status
+    client.get(url).raise_for_status.json
+  end
+
   def get_unimplied_tags(tags)
     tags = tags.join(" ") if tags.is_a?(Array)
     key = "uitags:#{tags.gsub(' ', '_')}"

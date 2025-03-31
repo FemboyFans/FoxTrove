@@ -9,7 +9,7 @@ class E6UpdateReplacedJob < ApplicationJob
       sub = to_submission(submission)
       sub.add_file({
         url: post["file"]["url"],
-        created_at: submission.created_at,
+        created_at: E6ApiClient.get_replacements(md5: post["file"]["md5"]).first&.[]("updated_at") || DateTime.parse(post["file"]["created_at"]),
         identifier: post["file"]["md5"],
       })
       sub.save(artist_url)
