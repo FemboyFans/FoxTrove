@@ -250,6 +250,10 @@ class SubmissionFile < ApplicationRecord
           q.order(height: :asc, created_at_on_site: :desc, file_identifier: :desc)
         when "height_desc", "height"
           q.order(height: :desc, created_at_on_site: :desc, file_identifier: :desc)
+        when "id_asc"
+          q.order(id: :asc)
+        when "id_desc", "id"
+          q.order(id: :desc)
         else
           q.order(created_at_on_site: :desc, file_identifier: :desc)
         end
