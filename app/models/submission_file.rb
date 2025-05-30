@@ -358,10 +358,11 @@ class SubmissionFile < ApplicationRecord
     file_url = direct_url.starts_with?("file://") || direct_url.include?("wixmp.com") ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = ""
     if artist_submission.description_on_site.present?
+      clean = artist_submission.description_on_site.gsub("</p><p>", "\n\n").gsub(/(\A\s*<p>\s*)|(\s*<\/p>\s*\z)/, "")
       if artist_submission.title_on_site.blank?
-        description = "[quote]\n#{artist_submission.description_on_site}\n[/quote]"
+        description = "[quote]\n#{clean}\n[/quote]"
       else
-        description = "[section,expanded=#{artist_submission.title_on_site}]\n#{artist_submission.description_on_site}\n[/section]"
+        description = "[section,expanded=#{artist_submission.title_on_site}]\n#{clean}\n[/section]"
       end
       description = "&description=#{CGI.escape(description)}"
     end
