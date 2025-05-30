@@ -1,6 +1,8 @@
 module Scraper
   class Kemono < Base
     STATE = :offset
+    SERVERS = %w[https://n1.kemono.su https://n2.kemono.su https://n3.kemono.su https://n4.kemono.su]
+    HASH_LENGTH = 64
 
     def initialize(artist_url)
       super
@@ -26,9 +28,9 @@ module Scraper
 
       files.each do |file|
         s.add_file({
-           url: "https://n1.kemono.su/data#{file['path']}?f=#{file['name']}",
+           url: "#{get_server(file['path'])}/data#{file['path']}?f=#{file['name']}",
            created_at: s.created_at,
-           identifier: file["path"][8..file["path"].index(".").to_i - 1],
+           identifier: file["path"][7, HASH_LENGTH],
          })
       end
 
@@ -48,6 +50,15 @@ module Scraper
 
     def make_request(url, params = {})
       client.fetch_json(url, params: params)
+    end
+
+    def get_server(path)
+      SERVERS.each do |server|
+        response = client.head("#{server}/data#{path}", should_raise: false)
+        return server if response.status == 200
+      end
+
+      raise(RuntimeError, "Could not find server for #{path}")
     end
   end
 end
