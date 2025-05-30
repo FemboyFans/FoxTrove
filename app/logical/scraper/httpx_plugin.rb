@@ -3,13 +3,13 @@ module Scraper
     module InstanceMethods
       delegate :scraper, to: :@options
 
-      def request(method, uri, should_raise: true, **params)
+      def request(method, uri, should_raise: true, should_log: true, **params)
         response = scraper.enfore_rate_limit { super(method, uri, **params) }
 
         headers = @options.headers.merge(params[:headers] || {}).to_h
         relevant_options = params.slice(:params, :json, :form, :body)
         relevant_options[:headers] = headers if headers.present?
-        scraper.log_response(response.uri, method, relevant_options, response.status, response.body.to_s)
+        scraper.log_response(response.uri, method, relevant_options, response.status, response.body.to_s) if should_log
 
         response.raise_unless_ok if should_raise
         response

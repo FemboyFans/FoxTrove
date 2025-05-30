@@ -54,7 +54,7 @@ module Scraper
 
     def get_server(path)
       SERVERS.each do |server|
-        response = client.head("#{server}/data#{path}", should_raise: false)
+        response = client.head("#{server}/data#{path}", should_raise: false, should_log: false)
         return server if response.status == 200
       end
 
