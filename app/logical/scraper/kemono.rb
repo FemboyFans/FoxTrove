@@ -6,7 +6,7 @@ module Scraper
 
     def initialize(artist_url)
       super
-      @offset = nil
+      @offset = 0
     end
 
     def fetch_next_batch
@@ -27,8 +27,10 @@ module Scraper
       files = [submission["file"], *submission["attachments"]].uniq.compact_blank
 
       files.each do |file|
+        server = get_server(file["path"])
+        next if server.nil?
         s.add_file({
-           url: "#{get_server(file['path'])}/data#{file['path']}?f=#{file['name']}",
+           url: "#{server}/data#{file['path']}?f=#{file['name']}",
            created_at: s.created_at,
            identifier: file["path"][7, HASH_LENGTH],
          })
@@ -53,6 +55,7 @@ module Scraper
     end
 
     def get_server(path)
+      return nil if path.start_with?("/attachments")
       SERVERS.each do |server|
         response = client.head("#{server}/data#{path}", should_raise: false, should_log: false)
         return server if response.status == 200
