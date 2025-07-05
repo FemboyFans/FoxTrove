@@ -6,7 +6,7 @@
 <% else %>
   <h2>Successfully queued <%= @archive.total_imported_files_count %> files for import!</h2>
   <% if @archive.already_imported_count != 0 %>
-    <span><%= @archive.already_imported_count %> where skipped, because they are already imported.</span>
+    <span><%= @archive.already_imported_count %> were skipped, because they are already imported.</span>
   <% end %>
 
   <%= render "artist_urls/list", artist_urls: ArtistUrl.where(id: @archive.imported_files.keys) %>

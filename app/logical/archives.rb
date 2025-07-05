@@ -1,6 +1,7 @@
 module Archives
   ALL = [
     Archives::Tumblr,
+    Archives::Custom,
   ].freeze
 
   def self.detect(file)

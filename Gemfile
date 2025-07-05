@@ -25,6 +25,7 @@ gem "rubyzip", "~> 2.4.rc1"
 gem "rugged"
 gem "selenium-webdriver"
 gem "simple_form"
+gem "csv"
 
 group :test do
   gem "simplecov", require: false

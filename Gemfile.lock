@@ -63,6 +63,7 @@ GEM
       bigdecimal
       rexml
     crass (1.0.6)
+    csv (3.2.8)
     docile (1.4.1)
     drb (2.2.1)
     erubi (1.13.0)
@@ -244,6 +245,7 @@ DEPENDENCIES
   activestorage (~> 7.2.0)
   activesupport (~> 7.2.0)
   addressable
+  csv
   factory_bot
   good_job
   httpx
@@ -272,4 +274,4 @@ DEPENDENCIES
   webmock
 
 BUNDLED WITH
-   2.5.11
+   2.5.16

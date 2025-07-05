@@ -348,14 +348,18 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
-  NO_GALLERY_SITES = %w[twitter weasyl kemono].freeze
+  NO_GALLERY_SITES = %w[twitter weasyl kemono manual].freeze
+
+  def uploadable?
+    direct_url.starts_with?("file://") || direct_url.include?("wixmp.com")
+  end
 
   def upload_url(template) # rubocop:disable Metrics/CyclomaticComplexity
     # return nil unless e6_posts.empty?
     sources = []
     sources << template.gallery_url(artist_url) unless NO_GALLERY_SITES.include?(artist_url.site_type) || (artist.is_commissioner? && artist_url.site_type == "e621")
     sources << template.submission_url(artist_submission)
-    file_url = direct_url.starts_with?("file://") || direct_url.include?("wixmp.com") ? "" : "upload_url=#{CGI.escape(direct_url)}&"
+    file_url = uploadable? ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = ""
     if artist_submission.description_on_site.present?
       clean = artist_submission.description_on_site.gsub("</p><p>", "\n\n").gsub(/(\A\s*<p>\s*)|(\s*<\/p>\s*\z)/, "")
@@ -391,9 +395,8 @@ class SubmissionFile < ApplicationRecord
         if post["tags"]["meta"].present?
           year = post["tags"]["meta"].find { |v| %r{\A\d{4}\z}.match?(v) }
           tags << "meta:#{year}" if year
-        else
-          tags << "meta:#{created_at_on_site.year}"
         end
+        tags << "meta:#{created_at_on_site.year}" unless tags.any? { |t| t.start_with?("meta:") }
         sources += post["sources"].reject { |s| %w[png jpg jpeg webm webp gif mp4].any? { |ext| s.ends_with?(ext) } || %w[://pbs.twing.com].any? { |domain| s.include?(domain) } }
       else
         if artist.is_commissioner?
@@ -407,6 +410,11 @@ class SubmissionFile < ApplicationRecord
     end
     sources = sources.map { |source| CGI.escape(source) }.join(",")
     @upload_url ||= "https://femboy.fan/uploads/new?#{file_url}sources=#{sources}#{description}&tags=#{tags.join('+')}#{extra}"
+  end
+
+  def replacement_url(template, entry)
+    return unless uploadable?
+    @replacement_url ||= "https://femboy.fan/posts/replacements/new?post_id=#{entry.post_id}&upload_url=#{CGI.escape(direct_url)}&additional_source=#{CGI.escape(template.submission_url(artist_submission))}"
   end
 
   def iqdb_similar
