@@ -1,5 +1,5 @@
 class SeleniumWrapper
-  DEFAULT_TIMEOUT = 60
+  DEFAULT_TIMEOUT = 180
 
   def self.driver(with_performance: false)
     options = Selenium::WebDriver::Chrome::Options.new(exclude_switches: ["enable-automation"])
