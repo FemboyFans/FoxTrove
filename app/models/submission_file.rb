@@ -390,7 +390,7 @@ class SubmissionFile < ApplicationRecord
           extra += "&tags-character=#{post['tags']['character'].map { |t| "character:#{t}" }.join("+")}"
         end
         if post["tags"]["species"].present?
-          extra += "&tags-species=#{E6ApiClient.get_unimplied_tags(post['tags']['species']).map { |t| "species:#{t}" }.join("+")}"
+          extra += "&tags-species=#{E6ApiClient.categorize_species_tags(post['tags']['species']).join("+")}"
         end
         if post["tags"]["meta"].present?
           year = post["tags"]["meta"].find { |v| %r{\A\d{4}\z}.match?(v) }

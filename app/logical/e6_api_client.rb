@@ -56,13 +56,31 @@ module E6ApiClient
     client.get(url).raise_for_status.json
   end
 
-  def get_unimplied_tags(tags)
+  def get_unimplied_tags(tags, basic: true)
     tags = tags.join(" ") if tags.is_a?(Array)
-    key = "uitags:#{tags.gsub(' ', '_')}"
+    key = "uitags:#{tags.gsub(' ', '_')}:#{basic}"
     return Rails.cache.read(key) if Rails.cache.exist?(key)
-    list = tags_client.get("/get?tags=#{tags}&basic=true").raise_for_status.json["tags"]
-    Rails.cache.write(key, list, expires_in: 30.days)
-    list
+    response = tags_client.get("/get?tags=#{tags}&basic=#{basic}").raise_for_status.json
+    response = response["tags"] if basic
+    Rails.cache.write(key, response, expires_in: 30.days)
+    response
+  end
+
+  CHARACTER_SPECIES = %w[pokemon_(species) digimon_(species)].freeze
+  def categorize_species_tags(tags)
+    response = get_unimplied_tags(tags, basic: false)
+    tags = response["tags"]
+    result = []
+    response["implied"]["list"].each do |tag|
+      next unless CHARACTER_SPECIES.include?(tag)
+      tags.dup.each do |t|
+        if response["implied"]["results"].fetch(tag, []).include?(t)
+          result << "character:#{t}"
+          tags -= [t]
+        end
+      end
+    end
+    result + tags.map { |t| "species:#{t}" }
   end
 
   private
