@@ -1,7 +1,7 @@
 module Scraper
   class Kemono < Base
     STATE = :offset
-    SERVERS = %w[https://n1.kemono.su https://n2.kemono.su https://n3.kemono.su https://n4.kemono.su]
+    SERVERS = %w[https://n1.kemono.cr https://n2.kemono.cr https://n3.kemono.cr https://n4.kemono.cr]
     HASH_LENGTH = 64
 
     def initialize(artist_url)
@@ -46,7 +46,7 @@ module Scraper
 
     def extend_client(client)
       client
-        .with(headers: { "User-Agent": FRIENDLY_USER_AGENT }, origin: "https://kemono.su")
+        .with(headers: { "User-Agent": FRIENDLY_USER_AGENT }, origin: "https://kemono.cr")
     end
 
     private
@@ -56,7 +56,7 @@ module Scraper
     end
 
     def get_server(path)
-      return "https://img.kemono.su/thumbnail" if path.start_with?("/attachments")
+      return "https://img.kemono.cr/thumbnail" if path.start_with?("/attachments")
       SERVERS.each do |server|
         response = client.head("#{server}/data#{path}", should_raise: false, should_log: false)
         return server if response.status == 200

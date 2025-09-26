@@ -1,8 +1,8 @@
 type: ScraperDefinition
 enum_value: kemono
 display_name: Kemono
-homepage: https://kemono.su
+homepage: https://kemono.cr
 gallery_templates:
-  - kemono.su/patreon/user/{site_artist_identifier}
+  - kemono.cr/patreon/user/{site_artist_identifier}
 username_identifier_regex: "*{,32}"
 submission_template: https://patreon.com/posts/{site_submission_identifier}
