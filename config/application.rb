@@ -9,8 +9,6 @@ require "action_controller/railtie"
 require "action_view/railtie"
 require "rails/test_unit/railtie"
 
-require_relative "../app/logical/pg_version_mismatch_handler"
-
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -18,7 +16,12 @@ Bundler.require(*Rails.groups)
 module FoxTrove
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.2
+    config.load_defaults 8.0
+
+    if Rails::VERSION::STRING >= "8.1.0"
+      # Opt out of build-in variants. We don't use those.
+      config.active_storage.variant_processor = :disabled
+    end
 
     config.active_job.queue_adapter = :good_job
     config.good_job.execution_mode = :external
@@ -38,8 +41,6 @@ module FoxTrove
 
     config.cache_store = :file_store, Rails.root.join("tmp/file_store")
     config.action_controller.cache_store = config.cache_store
-
-    config.middleware.insert_after(ActionDispatch::Callbacks, PgVersionMismatchHandler)
 
     config.logger = ActiveSupport::Logger.new($stdout)
     if GoodJob::CLI.within_exe?

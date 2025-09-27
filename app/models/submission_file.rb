@@ -98,12 +98,12 @@ class SubmissionFile < ApplicationRecord
 
 
   def attach_original_from_blob!(blob)
-    blob.analyze
+    metadata = ActiveStorage::Analyzer::ImageAnalyzer::Vips.new(blob).metadata
     raise(AnalysisError, "Failed to analyze") if blob.content_type == "application/octet-stream"
     raise(ContentTypeError, "'#{blob.content_type}' is not allowed") if blob.content_type.in?(Scraper::Submission::MIME_IGNORE)
 
-    self.width = blob.metadata[:width]
-    self.height = blob.metadata[:height]
+    self.width = metadata[:width]
+    self.height = metadata[:height]
     self.content_type = blob.content_type
     self.size = blob.byte_size
 
@@ -215,7 +215,7 @@ class SubmissionFile < ApplicationRecord
 
   def file_path_for(variant_or_blob)
     blob = variant_or_blob.is_a?(Symbol) ? send(variant_or_blob) : variant_or_blob
-    blob.service.path_for(blob.key)
+    blob.service&.path_for(blob.key)
   end
 
   def url_for(variant, **)
@@ -282,7 +282,7 @@ class SubmissionFile < ApplicationRecord
         [:artist_id, :site_type, :upload_status, :corrupt, :zero_sources, :zero_artists, :larger_only_filesize_threshold, :content_type, :title, :description, { artist_url_id: [] }, :in_backlog, :order]
       end
 
-      def pagy(params)
+      def paginate(params)
         params[:limit] ||= Config.files_per_page
         super
       end

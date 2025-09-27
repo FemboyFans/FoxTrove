@@ -52,7 +52,7 @@ module Scraper
       end
 
       test "cohost" do
-        assert_scraper(Scraper::Cohost, "MeldritchHorror", 12_229)
+        assert_scraper(Scraper::Cohost, "MeldritchHorror", "MeldritchHorror")
       end
 
       test "commishes" do
@@ -105,6 +105,10 @@ module Scraper
 
       test "sofurry" do
         assert_scraper(Scraper::Sofurry, "zummeng", "373836")
+      end
+
+      test "trello" do
+        assert_scraper(Scraper::Trello, "2fDaPKHy/codys-comms", "63c0a4fd52d78f036e355512")
       end
 
       test "tumblr" do

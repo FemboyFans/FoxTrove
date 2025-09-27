@@ -1,32 +1,28 @@
 module Config
+  DEFAULT_PATH = Rails.root.join("config/foxtrove.yml")
+  CUSTOM_PATH = Rails.root.join("config/foxtrove_custom_config.yml")
+
   module_function
 
   def default_config
     @default_config ||= begin
-      file_config = YAML.load_file(Rails.root.join("config/foxtrove.yml"), symbolize_names: true)
+      file_config = YAML.load_file(DEFAULT_PATH, symbolize_names: true)
       scraper_disabled_keys = Sites.scraper_definitions.to_h { |definition| [:"#{definition.site_type}_disabled?", false] }
       file_config.merge(scraper_disabled_keys)
     end
   end
 
   def custom_config
-    @custom_config ||= File.exist?(custom_config_path) ? YAML.load_file(custom_config_path, fallback: {}, symbolize_names: true) : {}
-  end
-
-  def custom_config_path
-    old_config_path = Rails.root.join("config/foxtrove_custom_config.yml")
-    current_config_path = Rails.root.join("config/foxtrove_custom_config.yml")
-    if old_config_path.exist?
-      old_config_path.rename(current_config_path)
-    end
-    current_config_path
+    @custom_config ||= CUSTOM_PATH.exist? ? YAML.load_file(CUSTOM_PATH, fallback: {}, symbolize_names: true) : {}
   end
 
   def merge_custom_config(new_values)
     mapped = new_values.to_h do |k, v|
-      if respond_to?(:"#{k}?") || k.end_with?("?")
-        ["#{k.to_s.delete_suffix('?')}?", ActiveModel::Type::Boolean.new.cast(v)]
-      elsif default_config[k.to_sym].is_a?(Numeric)
+      k = :"#{k}?" if respond_to?(:"#{k}?")
+      case default_config[k.to_sym]
+      when TrueClass, FalseClass
+        [k, ActiveModel::Type::Boolean.new.cast(v)]
+      when Numeric
         [k, cast_number(v)]
       else
         [k, v]
@@ -37,7 +33,7 @@ module Config
 
   def write_custom_config(new_values)
     data = Psych.safe_dump(merge_custom_config(new_values))
-    File.write(custom_config_path, data)
+    File.write(CUSTOM_PATH, data)
   end
 
   def cast_number(value)
@@ -59,15 +55,12 @@ module Config
   end
 
   def method_missing(method)
-    raise NoMethodError, "Unknown config #{method}" unless respond_to_missing?(method)
-
-    bool_key = method.to_s.delete_suffix("?").to_sym
-    if custom_config.key?(bool_key) && method.end_with?("?")
-      custom_config[bool_key] == "true"
-    elsif custom_config.key?(method)
+    if custom_config.key?(method)
       custom_config[method]
-    else
+    elsif default_config.key?(method)
       default_config[method]
+    else
+      super
     end
   end
 

@@ -1,6 +1,10 @@
 require "test_helper"
 
 class SubmissionFilesControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    stub_request(:post, "http://iqdb:5588/query").to_return(status: 200, body: "[]", headers: { "Content-Type": "application/json" })
+  end
+
   test "index" do
     create(:submission_file_with_original, file_name: "1.jpg", with_sample: true)
     get submission_files_path

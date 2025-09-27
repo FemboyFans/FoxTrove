@@ -5,21 +5,29 @@ FactoryBot.define do
 
     json do
       {
-        post: {
-          id: post_id,
-          file: {
+        id: post_id,
+        file: {
+          width: 10,
+          height: 10,
+          size: 10.kilobytes,
+          md5: md5,
+          url: "https://static.femboy.fan/data/#{md5[0..1]}/#{md5[2..3]}/#{md5}.png",
+        },
+        flags: {
+          deleted: false,
+        },
+        variants: [
+          {
+            ext: "png",
+            md5: md5,
+            size: 10.kilobytes,
+            type: "large",
+            video: false,
             width: 10,
             height: 10,
-            size: 10.kilobytes,
-            md5: md5,
-          },
-          flags: {
-            deleted: false,
-          },
-          sample: {
-            url: "https://static1.e621.net/data/#{md5[0..1]}/#{md5[2..3]}/#{md5}.png",
-          },
-        },
+            url: "https://static.femboy.fan/data/#{md5[0..1]}/#{md5[2..3]}/#{md5}.png"
+          }
+        ]
       }
     end
   end

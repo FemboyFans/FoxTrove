@@ -34,6 +34,7 @@ class ArtistUrl < ApplicationRecord
     manual trello itaku artfol
     cohost inkblot bluesky e621
     omorashi threads femboyfans kemono
+    hipolink vgen
   ].map.with_index { |v, index| [v, index] }.to_h
 
   def self.search(params)

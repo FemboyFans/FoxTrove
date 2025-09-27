@@ -3,7 +3,7 @@ module IconGenerator
 
   ICON_FOLDER = Rails.public_path.join("icons")
   TARGET_FILE = Rails.public_path.join("icons.png")
-  ICON_SIZE = 64
+  ICON_SIZE   = 64
 
   def run
     files = Dir.glob("#{ICON_FOLDER}/*.png").sort_by do |path|
@@ -11,13 +11,16 @@ module IconGenerator
       index.to_i
     end
 
+    return if files.empty?
+
     thumbs = files.map do |file|
-      thumb = Vips::Image.thumbnail(file, ICON_SIZE)
-      thumb = thumb.add_alpha unless thumb.has_alpha?
+      thumb = Vips::Image.thumbnail(file, ICON_SIZE, height: ICON_SIZE, size: :force)
+      thumb = thumb.bandjoin(255) unless thumb.has_alpha?
       thumb
     end
 
-    icons = thumbs.reduce { |result, thumb| result.join(thumb, :vertical) }
+    icons = Vips::Image.arrayjoin(thumbs, across: 1)
+
     icons.pngsave(TARGET_FILE.to_s)
   end
 end

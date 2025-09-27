@@ -1,6 +1,4 @@
 module ApplicationHelper
-  include Pagy::Frontend
-
   def time_ago(value)
     return "" if value.nil?
 
@@ -24,6 +22,14 @@ module ApplicationHelper
     link_to(text, url, **, rel: "nofollow noopener noreferrer")
   end
 
+  def link_to_current_with_page(text, paginator, page)
+    if paginator.current_page == page || page < 1 || page > paginator.last_page
+      tag.a(text, "aria-disabled": true)
+    else
+      link_to(text, request.query_parameters.merge(page: page))
+    end
+  end
+
   def fake_link(text, **)
     tag.a(text, href: "#", **, onclick: "return false;")
   end
@@ -43,7 +49,7 @@ module ApplicationHelper
 
   def hideable_search(path, &)
     search = toggleable("search", "Show Search Options", "Hide Search Options", visible_on_load: params[:search].present?) do
-      simple_form_for(:search, method: :get, url: path, defaults: { required: false }, builder: HideableSearchFormBuilder, search_params: params[:search] || {}) do |f|
+      form_with(scope: :search, method: :get, url: path, builder: HideableSearchFormBuilder, search_params: params[:search] || {}) do |f|
         capture { yield(f) } + f.submit("Search")
       end
     end

@@ -58,7 +58,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     test "create with an invalid artist name" do
       post artists_path(artist: { name: "!invalid", url_string: "foo" })
       assert_response :unprocessable_content
-      assert_equal("Name '!invalid' can only contain alphanumerics and _.-+()", css_select("#form-error").inner_text)
+      assert_equal("Name '!invalid' can only contain alphanumerics, spaces, and _.-+()", css_select("#form-error").inner_text)
     end
 
     test "create with invalid url" do

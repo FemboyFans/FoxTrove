@@ -1,6 +1,6 @@
 <%# locals: (path:, artist_urls:) -%>
 <%= hideable_search(path) do |f| %>
-  <%= f.input :artist_url_id, label: "URLs", collection: artist_urls, input_html: { multiple: true } if artist_urls.any? %>
+  <%= f.input :artist_url_id, label: "URLs", collection: artist_urls, multiple: true if artist_urls.any? %>
   <%= f.input :upload_status, label: "Status", collection: [
     ["Larger Only (Filesize kB)", "larger_only_filesize_kb"],
     ["Larger Only (Filesize %)", "larger_only_filesize_percentage"],
@@ -21,9 +21,9 @@
   ], include_blank: true %>
   <%= f.input :title %>
   <%= f.input :description %>
-  <%= f.input :corrupt, as: :boolean %>
-  <%= f.input :zero_sources, as: :boolean %>
-  <%= f.input :zero_artists, as: :boolean %>
+  <%= f.input :corrupt, as: :checkbox %>
+  <%= f.input :zero_sources, as: :checkbox %>
+  <%= f.input :zero_artists, as: :checkbox %>
   <%= f.input :order, collection: [
     ["Largest Size", "size_desc"],
     ["Smallest Size", "size_asc"],

@@ -1,6 +1,8 @@
-FROM ruby:3.3.4-alpine3.20 AS ruby-builder
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE:-ruby:3.4.5-alpine3.22} AS ruby-builder
 
-RUN apk --no-cache add build-base cmake postgresql16-dev git
+RUN apk --no-cache add build-base cmake git \
+  libffi-dev postgresql17-dev yaml-dev git
 
 COPY Gemfile Gemfile.lock ./
 RUN gem i foreman && bundle install \
@@ -8,17 +10,17 @@ RUN gem i foreman && bundle install \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
  && find /usr/local/bundle/gems/ -name "*.o" -delete
 
-FROM node:20-alpine3.20 AS node-downloader
+FROM node:22-alpine3.22 AS node-downloader
 
-RUN npm install esbuild@0.23.1 -g
+RUN npm install esbuild@0.25.9 -g
 
-FROM ruby:3.3.4-alpine3.20
+FROM ${BASE_IMAGE:-ruby:3.4.5-alpine3.22}
 
 WORKDIR /app
 
 RUN apk --no-cache add \
   tzdata \
-  postgresql16-client \
+  postgresql17-client \
   vips ffmpeg \
   sudo jemalloc
 
@@ -31,12 +33,12 @@ RUN echo "[safe]" > ~/.gitconfig && \
 # Create a user with (potentially) the same id as on the host
 ARG HOST_UID=1000
 ARG HOST_GID=1000
-RUN addgroup --gid ${HOST_GID} reverser && \
-  adduser -S --shell /bin/sh --uid ${HOST_UID} reverser -G reverser && \
-  addgroup reverser wheel && \
-  echo "reverser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN addgroup --gid ${HOST_GID} foxtrove && \
+  adduser -S --shell /bin/sh --uid ${HOST_UID} foxtrove -G foxtrove && \
+  addgroup foxtrove wheel && \
+  echo "foxtrove ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 ARG DOCKER_RUN_AS_USER
-ENV USER=${DOCKER_RUN_AS_USER:+reverser}
+ENV USER=${DOCKER_RUN_AS_USER:+foxtrove}
 ENV USER=${USER:-root}
 USER $USER
 

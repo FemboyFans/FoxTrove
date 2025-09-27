@@ -9,7 +9,7 @@ module Scraper
       @artist_url = artist_url.is_a?(Integer) ? ArtistUrl.find(artist_url) : artist_url
       @has_more = true
       @previous_request = 0
-      @client = extend_client(HTTPX.plugin(HttpxPlugin, scraper: self))
+      @client = extend_client(HttpxPlugin.from_scraper(self))
     end
 
     def self.site_type
@@ -29,7 +29,7 @@ module Scraper
     end
 
     def process!
-      jumpstart(@artist_url.scraper_status[self.class::STATE.to_s]) if @artist_url.scraper_status.present?
+      jumpstart(@artist_url.scraper_status[self.class::STATE]) if @artist_url.scraper_status.present?
       @artist_url.scraper_status["started_at"] ||= Time.current
 
       while more?
@@ -139,7 +139,7 @@ module Scraper
 
     def fetch_json_selenium(path)
       SeleniumWrapper.driver do |d|
-        enfore_rate_limit do
+        enforce_rate_limit do
           d.navigate.to path
         end
         begin
@@ -155,6 +155,11 @@ module Scraper
     def log_response(path, method, request_params, status_code, body)
       return unless Config.log_scraper_requests?
 
+      if body.encoding == Encoding::BINARY
+        body = body.force_encoding(Encoding::UTF_8)
+      end
+      body = body.encode(body.encoding, body.encoding, invalid: :replace) unless body.valid_encoding?
+
       @artist_url.add_log_event(:scraper_request, {
         path: path,
         method: method,
@@ -162,12 +167,12 @@ module Scraper
           **request_params,
         },
         response_code: status_code,
-        response_body: body.encode(body.encoding, body.encoding, invalid: :replace),
+        response_body: body,
       })
     end
 
     # This is pretty hacky and only works because there is only one job executing at once
-    def enfore_rate_limit(&)
+    def enforce_rate_limit(&)
       now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       elapsed_time = now - @previous_request
       if elapsed_time < Config.scraper_request_rate_limit

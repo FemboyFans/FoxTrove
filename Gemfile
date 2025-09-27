@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-rails_version = "~> 7.2.0"
+rails_version = "~> 8.0.0"
 gem "actionpack",    rails_version
 gem "actionview",    rails_version
 gem "activejob",     rails_version
@@ -13,18 +13,15 @@ gem "railties",      rails_version
 gem "addressable"
 gem "good_job"
 gem "httpx"
-gem "listen"
 gem "nokogiri"
-gem "pagy"
 gem "pg", "~> 1.1"
 gem "puma"
 gem "rotp"
 gem "rouge"
 gem "ruby-vips"
-gem "rubyzip", "~> 2.4.rc1"
+gem "rubyzip"
 gem "rugged"
 gem "selenium-webdriver"
-gem "simple_form"
 gem "csv"
 
 group :test do

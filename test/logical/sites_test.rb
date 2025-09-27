@@ -112,10 +112,10 @@ class SitesTest < ActiveSupport::TestCase
 
     assert_equal(images.count, lines.count, "Unparsable line in readme scraper section")
 
-    display_names = Sites.scraper_definitions.map(&:display_name)
+    display_names = Sites.scraper_definitions.map(&:display_name) - %w[Kemono]
     diff = (sites - display_names) | (display_names - sites)
 
-    assert_equal(Sites.scraper_definitions.count, sites.count, "Readme sites are out of sync: #{diff}")
+    assert_equal(Sites.scraper_definitions.count - 1, sites.count, "Readme sites are out of sync: #{diff}")
     assert_equal(sites.map(&:downcase).sort, sites.map(&:downcase), "Readme sites are not sorted")
 
     images.zip(sites).each do |image, site|

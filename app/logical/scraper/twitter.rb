@@ -4,7 +4,7 @@ module Scraper
     class ApiError < RuntimeError; end
 
     OPTIONAL_CONFIG_KEYS = %i[twitter_otp_secret].freeze
-    STATE = :cursor
+    STATE = "cursor"
 
     BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"
     DATETIME_FORMAT = "%a %b %d %H:%M:%S %z %Y"
@@ -165,10 +165,10 @@ module Scraper
     def expand_description(tweet)
       range = tweet["display_text_range"]
       description = if range[0] == range[1]
-                      ""
-                    else
-                      tweet["full_text"][range[0]..range[1]]
-                    end
+        ""
+      else
+        tweet["full_text"][range[0]..range[1]]
+      end
 
       # Ensure replacements get processed right to left
       tweet["entities"]["urls"].sort { |a, b| b["indices"][0] - a["indices"][0] }.each do |entry|

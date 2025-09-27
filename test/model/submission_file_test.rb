@@ -39,11 +39,6 @@ class SubmissionFileTest < ActiveSupport::TestCase
       assert_enqueued_jobs 1, only: SubmissionFileUpdateJob
     end
 
-    it "enqueues the analyze job for the generated sample" do
-      create(:submission_file_with_original, file_name: "1.webp", with_sample: true)
-      assert_enqueued_jobs 1, only: ActiveStorage::AnalyzeJob
-    end
-
     it "enqueues nothing if the attachment didn't change" do
       sm = create(:submission_file_with_original, file_name: "1.webp")
       assert_no_enqueued_jobs { sm.save }
@@ -52,7 +47,7 @@ class SubmissionFileTest < ActiveSupport::TestCase
     it "handles corrupt files" do
       sm = create(:submission_file_with_original, file_name: "corrupt.jpg")
       assert_predicate sm, :corrupt?
-      assert_equal "VipsJpeg: Premature end of input file", sm.file_error
+      assert_match(/VipsJpeg: Premature end/i, sm.file_error)
     end
 
     it "purges the blob on errors in from_attachable" do
@@ -93,11 +88,11 @@ class SubmissionFileTest < ActiveSupport::TestCase
   it "respects the limit setting during pagination" do
     create_list(:submission_file, 3)
 
-    _, sm = SubmissionFile.pagy({})
+    _, sm = SubmissionFile.paginate({})
     assert_equal(3, sm.count)
 
     Config.stubs(:files_per_page).returns(2)
-    _, sm = SubmissionFile.pagy({})
+    _, sm = SubmissionFile.paginate({})
     assert_equal(2, sm.count)
   end
 

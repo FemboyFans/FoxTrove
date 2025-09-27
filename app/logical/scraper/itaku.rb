@@ -1,6 +1,6 @@
 module Scraper
   class Itaku < BufferedScraper
-    STATE = :page
+    STATE = "page"
 
     def initialize(artist_url)
       super
@@ -28,10 +28,10 @@ module Scraper
       s.created_at = DateTime.parse submission["date_added"]
 
       file_url = if submission["video"].present?
-                   submission["video"]["video"]
-                 else
-                   submission["image"]
-                 end
+        submission["video"]["video"]
+      else
+        submission["image"]
+      end
 
       s.add_file({
         url: file_url,

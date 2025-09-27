@@ -61,6 +61,8 @@ class ApplicationRecord < ActiveRecord::Base
           case column.sql_type_metadata.type
           when :text, :string
             text_column_matches(qualified_column, values)
+          when :jsonb
+            text_column_matches("#{qualified_column}::text", values)
           when :integer
             where("#{qualified_column} IN(?)", values)
           else
@@ -126,16 +128,15 @@ class ApplicationRecord < ActiveRecord::Base
         "#{model_name}Decorator".constantize
       end
 
-      def pagy(params)
-        page = [params[:page].to_i, 1].max
-        limit = params[:limit].to_i <= 0 ? Config.files_per_page : params[:limit]
-        pagy = Pagy.new(page: page, limit: limit, count: count)
-        [pagy, offset(pagy.offset).limit(pagy.limit)]
+      def paginate(params)
+        limit = params[:limit].to_i <= 0 ? nil : params[:limit]
+        paginator = Pagination.new(self, limit: limit, page: params[:page])
+        [paginator, paginator.records]
       end
 
-      def pagy_and_decorate(params)
-        pagy, elements = pagy(params)
-        [pagy, elements.map(&:decorate)]
+      def paginate_and_decorate(params)
+        paginator, records = paginate(params)
+        [paginator, records.map(&:decorate)]
       end
     end
   end

@@ -1,11 +1,17 @@
-require:
+plugins:
   - rubocop-erb
   - rubocop-factory_bot
   - rubocop-minitest
   - rubocop-performance
   - rubocop-rails
 
+inherit_mode:
+  merge:
+    - Exclude
+
 AllCops:
+  Exclude:
+    - data/**/*
   NewCops: enable
   CacheRootDirectory: tmp/cache
   StringLiteralsFrozenByDefault: true
@@ -15,6 +21,9 @@ FactoryBot/AssociationStyle:
 
 Layout/ArgumentAlignment:
   EnforcedStyle: with_fixed_indentation
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
 
 Layout/FirstArrayElementIndentation:
   EnforcedStyle: consistent

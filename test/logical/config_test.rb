@@ -12,12 +12,13 @@ class ConfigTest < ActiveSupport::TestCase
 
   def stub_custom_config(**params, &)
     Tempfile.create do |f|
-      Config.stubs(:custom_config_path).returns(f.path)
-      f << Psych.safe_dump(params.transform_keys(&:to_s))
-      f.flush
-      Config.unstub(:custom_config)
-      yield
-      Config.reset_cache
+      stub_const(Config, :CUSTOM_PATH, Pathname.new(f.path)) do
+        f << Psych.safe_dump(params.transform_keys(&:to_s))
+        f.flush
+        Config.unstub(:custom_config)
+        yield
+        Config.reset_cache
+      end
     end
   end
 
@@ -57,10 +58,10 @@ class ConfigTest < ActiveSupport::TestCase
   end
 
   it "handles booleans" do
-    stub_custom_config(bool: "true") do
+    stub_custom_config(bool?: true) do
       assert_predicate(Config, :bool?)
     end
-    stub_custom_config(bool: "false") do
+    stub_custom_config(bool?: false) do
       assert_not_predicate(Config, :bool?)
     end
   end

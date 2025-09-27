@@ -2,13 +2,11 @@ ENV["RAILS_ENV"] ||= "test"
 ENV["MT_NO_EXPECTATIONS"] ||= "1"
 
 require "simplecov"
-module SimpleCov
-  class SourceFile
-    def coverage_exceeding_source_warn
-      # no-op, https://github.com/simplecov-ruby/simplecov/issues/1057
-    end
+SimpleCov::SourceFile.prepend(Module.new do
+  def coverage_exceeding_source_warn
+    # no-op, https://github.com/simplecov-ruby/simplecov/issues/1057
   end
-end
+end)
 
 SimpleCov.start "rails" do
   enable_coverage :branch
@@ -42,11 +40,10 @@ require "mocha/minitest"
 require "webmock/minitest"
 require "httpx/adapters/webmock"
 
-$VERBOSE = true
-
 FactoryBot.find_definitions
 FactoryBot::SyntaxRunner.class_eval do
   include ActiveSupport::Testing::FileFixtures
+
   self.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
 end
 
@@ -58,18 +55,17 @@ module ActiveSupport
       WebMock.enable!
       WebMock.disable_net_connect!
       Config.stubs(:custom_config).returns({})
-      Config.stubs(:time_zone).returns("UTC")
       Rails.cache.clear
     end
 
     def stub_e6_iqdb(response, &)
-      stub = stub_request_once(:post, "https://e621.net/iqdb_queries.json", body: response.to_json, headers: { content_type: "application/json" })
+      stub = stub_request_once(:post, "https://femboy.fan/posts/iqdb.json", body: response.to_json, headers: { content_type: "application/json" })
       stub_for_block(stub, &)
     end
 
     def stub_e6_post(response, &)
-      id = response[:post][:id]
-      stub = stub_request_once(:get, "https://e621.net/posts/#{id}.json", body: response.to_json, headers: { content_type: "application/json" })
+      id = response[:id]
+      stub = stub_request_once(:get, "https://femboy.fan/posts/#{id}.json", body: response.to_json, headers: { content_type: "application/json" })
       stub_for_block(stub, &)
     end
 

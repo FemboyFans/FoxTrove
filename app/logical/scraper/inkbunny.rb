@@ -1,7 +1,7 @@
 module Scraper
   # https://wiki.inkbunny.net/wiki/API
   class Inkbunny < Base
-    STATE = :page
+    STATE = "page"
 
     def initialize(artist_url)
       super
@@ -11,10 +11,10 @@ module Scraper
 
     def fetch_next_batch
       json = if @rid
-               search_mode2
-             else
-               search_mode1
-             end
+        search_mode2
+      else
+        search_mode1
+      end
       end_reached if json["pages_count"] == json["page"]
       submission_ids = json["submissions"].pluck("submission_id")
       submissions = submission_details(submission_ids).reject { |submission| submission["last_file_update_datetime"].nil? }

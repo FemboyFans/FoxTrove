@@ -13,9 +13,9 @@ class IqdbController < ApplicationController
       if (post_id = params[:url].scan(%r{https://(?:e621|e926)\.net/posts/(\d*)\??})&.flatten&.first)
         post_data = E6ApiClient.get_post(post_id)
         IqdbProxy.query_url(post_data.dig("sample", "url"))
-      elsif (post_id = params[:url].scan(%r{https://femboy\.fan\.net/posts/(\d*)\??})&.flatten&.first)
+      elsif (post_id = params[:url].scan(%r{https://femboy\.fan/posts/(\d*)\??})&.flatten&.first)
         post_data = FemboyFansApiClient.get_post(post_id)
-        IqdbProxy.query_url(post_data.dig("sample", "url"))
+        IqdbProxy.query_url((post_data["variants"].find { |v| v["type"] == "large" } || post_data["file"])["url"])
       else
         IqdbProxy.query_url(params[:url])
       end

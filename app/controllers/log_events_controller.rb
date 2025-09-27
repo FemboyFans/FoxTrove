@@ -1,6 +1,6 @@
 class LogEventsController < ApplicationController
   def index
-    @pagy, @log_events = LogEvent.search(search_params).pagy_and_decorate(params)
+    @paginator, @log_events = LogEvent.search(search_params).paginate_and_decorate(params)
   end
 
   def show
@@ -10,6 +10,6 @@ class LogEventsController < ApplicationController
   private
 
   def search_params
-    params.fetch(:search, {}).permit(:loggable_id, :loggable_type, :action)
+    params.fetch(:search, {}).permit(:loggable_id, :loggable_type, :action, :payload)
   end
 end

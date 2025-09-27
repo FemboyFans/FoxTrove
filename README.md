@@ -28,9 +28,10 @@ You can also search for non-uploaded submission for artists. How well this works
 * <img src="public/icons/5-artstation.png" width="16px" height="16px"> ArtStation
 * <img src="public/icons/30-baraag.png" width="16px" height="16px"> Baraag
 * <img src="public/icons/50-bluesky.png" width="16px" height="16px"> Bluesky
-* <img src="public/icons/48-cohost.png" width="16px" height="16px"> Cohost
+* <img src="public/icons/48-cohost.png" width="16px" height="16px"> Cohost (via Wayback Machine)
 * <img src="public/icons/33-commishes.png" width="16px" height="16px"> Commishes
 * <img src="public/icons/4-deviantart.png" width="16px" height="16px"> DeviantArt
+* <img src="public/icons/51-e621.png" width="16px" height="16px"> E621
 * <img src="public/icons/1-furaffinity.png" width="16px" height="16px"> FurAffinity
 * <img src="public/icons/34-furrynetwork.png" width="16px" height="16px"> FurryNetwork
 * <img src="public/icons/2-inkbunny.png" width="16px" height="16px"> Inkbunny
@@ -42,11 +43,10 @@ You can also search for non-uploaded submission for artists. How well this works
 * <img src="public/icons/7-pixiv.png" width="16px" height="16px"> Pixiv
 * <img src="public/icons/10-reddit.png" width="16px" height="16px"> Reddit
 * <img src="public/icons/3-sofurry.png" width="16px" height="16px"> Sofurry
+* <img src="public/icons/45-trello.png" width="16px" height="16px"> Trello
 * <img src="public/icons/9-tumblr.png" width="16px" height="16px"> Tumblr ([see notes](#tumblr))
 * <img src="public/icons/0-twitter.png" width="16px" height="16px"> Twitter
 * <img src="public/icons/8-weasyl.png" width="16px" height="16px"> Weasyl
-* <img src="public/icons/51-e621.png" width="16px" height="16px"> E621
-* <img src="public/icons/45-trello.png" width="16px" height="16px"> Trello
 <!--- sites:stop -->
 
 ### Tumblr

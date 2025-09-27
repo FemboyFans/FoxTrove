@@ -23,7 +23,9 @@ module IqdbProxy
   end
 
   def query_submission_file(submission_file)
-    File.open(submission_file.file_path_for(:sample)) do |f|
+    sample = submission_file.file_path_for(:sample)
+    return [] if sample.nil?
+    File.open(sample) do |f|
       # Remove the input submission file, we probably don't want it in the result
       query_file(f).reject { |entry| entry[:submission_file].id == submission_file.id }
     end
