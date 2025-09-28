@@ -46,7 +46,7 @@ module Scraper
 
     def extend_client(client)
       client
-        .with(headers: { "User-Agent": FRIENDLY_USER_AGENT }, origin: "https://kemono.cr")
+        .with(headers: { "User-Agent": FRIENDLY_USER_AGENT, "Accept": "text/css" }, origin: "https://kemono.cr")
     end
 
     private
