@@ -58,8 +58,9 @@ module E6ApiClient
 
   def get_unimplied_tags(tags, basic: true)
     tags = tags.join(" ") if tags.is_a?(Array)
-    key = "uitags:#{tags.gsub(' ', '_')}:#{basic}"
+    key = "uitags:#{tags.tr(' ', '_')}:#{basic}"
     return Rails.cache.read(key) if Rails.cache.exist?(key)
+
     response = tags_client.get("/get?tags=#{tags}&basic=#{basic}").raise_for_status.json
     response = response["tags"] if basic
     Rails.cache.write(key, response, expires_in: 30.days)
@@ -73,6 +74,7 @@ module E6ApiClient
     result = []
     response["implied"]["list"].each do |tag|
       next unless CHARACTER_SPECIES.include?(tag)
+
       tags.dup.each do |t|
         if response["implied"]["results"].fetch(tag, []).include?(t)
           result << "character:#{t}"

@@ -1,8 +1,10 @@
-type: SimpleDefinition
+type: ScraperDefinition
 enum_value: subscribestar
 display_name: SubscribeStar
 homepage: https://www.subscribestar.com
 gallery_templates:
   - subscribestar.com/{site_artist_identifier}
-  - subscribestar.adult/{site_artist_identifier}
+image_domains: # Also uses ss-uploads-prod.b-cdn.net but doesn't need headers
+  - subscribestar.com
 username_identifier_regex: "[a-zA-Z0-9_-]{3,512}"
+submission_template: https://subscribestar.com/{site_submission_identifier}

@@ -21,20 +21,28 @@ module Sites
     nil
   end
 
-  def download_headers_for_image_uri(uri)
+  def download_headers_for_image_uri(uri, artist_submission: nil)
     definition = definitions.find do |d|
       d.handles_image_domain? uri.domain
     end
-    definition&.download_headers || {}
+    headers = {}
+    if definition
+      headers.merge!(definition.download_headers)
+      if artist_submission.present? && definition.scraper? && definition.scraper_enabled?
+        scraper = definition.new_scraper(artist_submission.artist_url)
+        headers.merge!(scraper.download_headers)
+      end
+    end
+    headers
   end
 
-  def download_file(url)
+  def download_file(url, artist_submission: nil)
     fixed_uri = fix_url(url)
-    headers = download_headers_for_image_uri(fixed_uri)
+    headers = download_headers_for_image_uri(fixed_uri, artist_submission: artist_submission)
     response = HTTPX.plugin(:stream).plugin(:follow_redirects).with(headers: headers).get(fixed_uri, stream: true)
     outfile = Tempfile.new(binmode: true)
     response.each do |chunk|
-      next if [301, 302].include?(response.status)
+      next if [301, 302].include?(response.status) # rubocop:disable Performance/CollectionLiteralInLoop
 
       outfile.write(chunk)
     end

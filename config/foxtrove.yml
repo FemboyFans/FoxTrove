@@ -3,6 +3,9 @@ log_scraper_requests?: true
 # A rate limt of 0.5 means that the next request will be sent at
 # least half a second after the previous request finished.
 scraper_request_rate_limit: 0
+# If requests should be made to the femboyfans iqdb (https://femboy.fan/posts/iqdb), this is disabled by default due to it not working in development
+# Since this project isn't meant for external use, code changes will be required for this to work
+iqdb_enabled?: false
 
 # https://github.com/rails/rails/blob/2d2fdc941e7497ca77f99ce5ad404b6e58f043ef/activesupport/lib/active_support/values/time_zone.rb#L31-L183
 time_zone: UTC
@@ -50,3 +53,5 @@ commishes_user:
 commishes_pass:
 trello_key:
 trello_token:
+subscribestar_user:
+subscribestar_pass:

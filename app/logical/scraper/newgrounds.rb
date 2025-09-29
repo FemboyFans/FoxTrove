@@ -58,7 +58,7 @@ module Scraper
       end
     end
 
-    def get_submission_details(url) # rubocop:disable Metrics/CyclomaticComplexity
+    def get_submission_details(url)
       html = fetch_html(url, headers: { cookie: "#{COOKIE_NAME}=#{fetch_cookie}" })
       media_object = html.at("[itemtype='https://schema.org/MediaObject']")
       image_urls = []

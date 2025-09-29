@@ -96,7 +96,6 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
-
   def attach_original_from_blob!(blob)
     metadata = ActiveStorage::Analyzer::ImageAnalyzer::Vips.new(blob).metadata
     raise(AnalysisError, "Failed to analyze") if blob.content_type == "application/octet-stream"
@@ -168,10 +167,12 @@ class SubmissionFile < ApplicationRecord
   end
 
   def external_url
-    "https://rfs.femboy.fan" + url_for(:original, disposition: :inline)
+    "https://rfs.femboy.fan#{url_for(:original, disposition: :inline)}"
   end
 
   def update_e6_posts!
+    return unless Config.iqdb_enabled?
+
     e6_posts.destroy_all
 
     json = FemboyFansApiClient.iqdb_query(url: external_url)
@@ -289,7 +290,7 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
-  def similar # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  def similar
     files = IqdbProxy.query_submission_file(self)
     notices = []
     files.each do |f|
@@ -349,12 +350,14 @@ class SubmissionFile < ApplicationRecord
   end
 
   NO_GALLERY_SITES = %w[twitter weasyl kemono manual].freeze
+  EXCLUDE_SOURCE_EXTS = %w[png jpg jpeg webm webp gif mp4].freeze
+  EXCLUDE_SOURCES = %w[://pbs.twing.com].freeze
 
   def uploadable?
     direct_url.starts_with?("file://") || direct_url.include?("wixmp.com")
   end
 
-  def upload_url(template) # rubocop:disable Metrics/CyclomaticComplexity
+  def upload_url(template)
     # return nil unless e6_posts.empty?
     sources = []
     sources << template.gallery_url(artist_url) unless NO_GALLERY_SITES.include?(artist_url.site_type) || (artist.is_commissioner? && artist_url.site_type == "e621")
@@ -362,11 +365,11 @@ class SubmissionFile < ApplicationRecord
     file_url = uploadable? ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = ""
     if artist_submission.description_on_site.present?
-      clean = artist_submission.description_on_site.gsub("</p><p>", "\n\n").gsub(/(\A\s*<p>\s*)|(\s*<\/p>\s*\z)/, "")
-      if artist_submission.title_on_site.blank?
-        description = "[quote]\n#{clean}\n[/quote]"
+      clean = artist_submission.description_on_site.gsub("</p><p>", "\n\n").gsub(%r{(\A\s*<p>\s*)|(\s*</p>\s*\z)}, "")
+      description = if artist_submission.title_on_site.blank?
+        "[quote]\n#{clean}\n[/quote]"
       else
-        description = "[section,expanded=#{artist_submission.title_on_site}]\n#{clean}\n[/section]"
+        "[section,expanded=#{artist_submission.title_on_site}]\n#{clean}\n[/section]"
       end
       description = "&description=#{CGI.escape(description)}"
     end
@@ -374,30 +377,34 @@ class SubmissionFile < ApplicationRecord
     extra = ""
     if artist.e621_tag.present?
       if artist_url.site_type == "e621"
-        post = E6ApiClient.get_post_cached(artist_submission.identifier_on_site.to_i) rescue nil
+        post = begin
+          E6ApiClient.get_post_cached(artist_submission.identifier_on_site.to_i)
+        rescue StandardError
+          nil
+        end
         if artist.is_commissioner?
-          extra += "&tags-artist=#{post['tags']['artist'].map { |t| "artist:#{t}" }.join("+")}" if post.present? && post['tags']['artist'].any?
+          extra += "&tags-artist=#{post['tags']['artist'].map { |t| "artist:#{t}" }.join('+')}" if post.present? && post["tags"]["artist"].any?
           category = post["tags"].find { |_k, v| v.include?(artist.e621_tag) }.first
-          if category && !%w[general].include?(category)
-            tags << "#{category}:#{artist.e621_tag}"
+          tags << if category && %w[general].exclude?(category) # rubocop:disable Metrics/BlockNesting
+            "#{category}:#{artist.e621_tag}"
           else
-            tags << artist.e621_tag
+            artist.e621_tag
           end
         else
           extra += "&tags-artist=artist:#{artist.e621_tag}"
         end
         if post["tags"]["character"].present?
-          extra += "&tags-character=#{post['tags']['character'].map { |t| "character:#{t}" }.join("+")}"
+          extra += "&tags-character=#{post['tags']['character'].map { |t| "character:#{t}" }.join('+')}"
         end
         if post["tags"]["species"].present?
-          extra += "&tags-species=#{E6ApiClient.categorize_species_tags(post['tags']['species']).join("+")}"
+          extra += "&tags-species=#{E6ApiClient.categorize_species_tags(post['tags']['species']).join('+')}"
         end
         if post["tags"]["meta"].present?
-          year = post["tags"]["meta"].find { |v| %r{\A\d{4}\z}.match?(v) }
+          year = post["tags"]["meta"].find { |v| /\A\d{4}\z/.match?(v) }
           tags << "meta:#{year}" if year
         end
         tags << "meta:#{created_at_on_site.year}" unless tags.any? { |t| t.start_with?("meta:") }
-        sources += post["sources"].reject { |s| %w[png jpg jpeg webm webp gif mp4].any? { |ext| s.ends_with?(ext) } || %w[://pbs.twing.com].any? { |domain| s.include?(domain) } }
+        sources += post["sources"].reject { |s| EXCLUDE_SOURCE_EXTS.any? { |ext| s.ends_with?(ext) } || EXCLUDE_SOURCES.any? { |domain| s.include?(domain) } }
       else
         if artist.is_commissioner?
           tags << artist.e621_tag
@@ -414,11 +421,13 @@ class SubmissionFile < ApplicationRecord
 
   def replacement_url(template, entry)
     return unless uploadable?
+
     @replacement_url ||= "https://femboy.fan/posts/replacements/new?post_id=#{entry.post_id}&upload_url=#{CGI.escape(direct_url)}&additional_source=#{CGI.escape(template.submission_url(artist_submission))}"
   end
 
   def iqdb_similar
     return IqdbProxy.query_submission_file(self) if can_iqdb? && sample_generated?
+
     []
   end
 

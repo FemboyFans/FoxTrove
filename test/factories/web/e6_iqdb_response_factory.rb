@@ -13,11 +13,11 @@ FactoryBot.define do
               width: 10,
               height: 10,
               size: 10.kilobytes,
-              md5: md5
+              md5: md5,
             },
             flags: {
-              deleted: false
-            }
+              deleted: false,
+            },
           },
         }
       end

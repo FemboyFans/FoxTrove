@@ -34,7 +34,7 @@ class ArtistUrl < ApplicationRecord
     manual trello itaku artfol
     cohost inkblot bluesky e621
     omorashi threads femboyfans kemono
-    hipolink vgen
+    hipolink vgen subscribestar_adult
   ].map.with_index { |v, index| [v, index] }.to_h
 
   def self.search(params)
@@ -98,6 +98,7 @@ class ArtistUrl < ApplicationRecord
 
   def update_e6_replaced
     return unless site_type == "e621"
+
     E6UpdateReplacedJob.perform_later(self)
   end
 end

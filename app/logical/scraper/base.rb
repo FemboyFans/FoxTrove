@@ -90,6 +90,11 @@ module Scraper
       raise NotImplementedError
     end
 
+    # used for dynamic private access, such as paywalled content
+    def download_headers
+      {}
+    end
+
     def self.cache(method_name, expires_in)
       raise ArgumentError, "#{method_name} must have arity == 0" unless instance_method(method_name).arity == 0
 

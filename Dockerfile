@@ -21,8 +21,15 @@ WORKDIR /app
 RUN apk --no-cache add \
   tzdata \
   postgresql17-client \
-  vips ffmpeg \
-  sudo jemalloc
+  vips \
+  ffmpeg \
+  sudo \
+  jemalloc \
+  python3 \
+  py3-pip \
+  && pip install --no-cache-dir --break-system-packages --upgrade pip \
+  && pip install --no-cache-dir --break-system-packages gallery-dl \
+  && rm -rf /root/.cache
 
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV RUBYOPT=--enable=frozen-string-literal

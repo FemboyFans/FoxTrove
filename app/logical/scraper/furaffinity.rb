@@ -89,7 +89,7 @@ module Scraper
 
     def get_submission_html(id)
       response = @client.get("https://www.furaffinity.net/view/#{id}", headers: headers)
-      html = response.body.to_s.gsub(%r{<a href="\/user\/(.*?)" class="iconusername"><img.+?>.*?<\/a>}) { $1 }
+      html = response.body.to_s.gsub(%r{<a href="/user/(.*?)" class="iconusername"><img.+?>.*?</a>}) { ::Regexp.last_match(1) }
       Nokogiri::HTML(html)
     end
 

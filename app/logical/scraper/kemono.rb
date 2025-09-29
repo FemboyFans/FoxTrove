@@ -1,7 +1,7 @@
 module Scraper
   class Kemono < Base
     STATE = :offset
-    SERVERS = %w[https://n1.kemono.cr https://n2.kemono.cr https://n3.kemono.cr https://n4.kemono.cr]
+    SERVERS = %w[https://n1.kemono.cr https://n2.kemono.cr https://n3.kemono.cr https://n4.kemono.cr].freeze
     HASH_LENGTH = 64
 
     def initialize(artist_url)
@@ -11,7 +11,7 @@ module Scraper
 
     def fetch_next_batch
       response = make_request("/api/v1/patreon/user/#{url_identifier}", {
-        o: @offset
+        o: @offset,
       })
       end_reached if response.size < 50
       @offset = @offset.to_i + 50
@@ -30,11 +30,12 @@ module Scraper
         path = file["path"].gsub(" ", "%20")
         server = get_server(path)
         next if server.nil?
+
         s.add_file({
-           url: "#{server}/data#{path}?f=#{file['name']}",
-           created_at: s.created_at,
-           identifier: file["path"][7, HASH_LENGTH],
-         })
+          url: "#{server}/data#{path}?f=#{file['name']}",
+          created_at: s.created_at,
+          identifier: file["path"][7, HASH_LENGTH],
+        })
       end
 
       s
@@ -57,15 +58,16 @@ module Scraper
 
     def get_server(path)
       return "https://img.kemono.cr/thumbnail" if path.start_with?("/attachments")
+
       SERVERS.each do |server|
         response = client.head("#{server}/data#{path}", should_raise: false, should_log: false)
         return server if response.status == 200
         unless response.status == 403
-          raise(RuntimeError, "Found server #{server} for #{path}, but it seems to not be working: #{response.status}")
+          raise("Found server #{server} for #{path}, but it seems to not be working: #{response.status}")
         end
       end
 
-      raise(RuntimeError, "Could not find server for #{path}")
+      raise("Could not find server for #{path}")
     end
   end
 end

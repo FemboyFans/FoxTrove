@@ -1,0 +1,10 @@
+type: ScraperDefinition
+enum_value: subscribestar_adult
+display_name: SubscribeStarAdult
+homepage: https://www.subscribestar.adult
+gallery_templates:
+  - subscribestar.adult/{site_artist_identifier}
+image_domains: # Also uses ss-uploads-prod.b-cdn.net but doesn't need headers
+  - subscribestar.adult
+username_identifier_regex: "[a-zA-Z0-9_-]{3,512}"
+submission_template: https://subscribestar.adult/{site_submission_identifier}

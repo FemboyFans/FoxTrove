@@ -11,6 +11,7 @@ gem "activesupport", rails_version
 gem "railties",      rails_version
 
 gem "addressable"
+gem "csv"
 gem "good_job"
 gem "httpx"
 gem "nokogiri"
@@ -22,7 +23,7 @@ gem "ruby-vips"
 gem "rubyzip"
 gem "rugged"
 gem "selenium-webdriver"
-gem "csv"
+gem "tempfile"
 
 group :test do
   gem "simplecov", require: false

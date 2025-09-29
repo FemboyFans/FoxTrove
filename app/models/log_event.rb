@@ -3,6 +3,7 @@ class LogEvent < ApplicationRecord
 
   enum :action, {
     scraper_request: 0,
+    gallery_dl: 1,
   }
 
   PARAMETER_FILTER = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)

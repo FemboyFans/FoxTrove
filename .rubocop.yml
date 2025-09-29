@@ -1,4 +1,4 @@
-plugins:
+require:
   - rubocop-erb
   - rubocop-factory_bot
   - rubocop-minitest
@@ -110,4 +110,10 @@ Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: consistent_comma
 
 Rails/OutputSafety:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
   Enabled: false

@@ -25,9 +25,9 @@ FactoryBot.define do
             video: false,
             width: 10,
             height: 10,
-            url: "https://static.femboy.fan/data/#{md5[0..1]}/#{md5[2..3]}/#{md5}.png"
-          }
-        ]
+            url: "https://static.femboy.fan/data/#{md5[0..1]}/#{md5[2..3]}/#{md5}.png",
+          },
+        ],
       }
     end
   end

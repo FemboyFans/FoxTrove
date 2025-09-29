@@ -10,7 +10,7 @@ def Warning.warn(msg, ...)
   return if msg.include?("Net::HTTPSession") # deprecation in webmock
 
   super
-  #raise StandardError, msg
+  # raise StandardError, msg
 end
 
 require "bundler/setup" # Set up gems listed in the Gemfile.

@@ -11,6 +11,8 @@ class LogEventDecorator < ApplicationDecorator
         lines << "body: #{body_params}"
       end
       h.safe_join(lines.map { |line| h.tag.div(line) })
+    when "gallery_dl"
+      h.safe_join([h.tag.div("date: >= #{payload['date']}"), h.tag.div("url: #{payload['url']}")])
     else
       "Unknown action #{action}"
     end
@@ -30,6 +32,8 @@ class LogEventDecorator < ApplicationDecorator
         h.tag.pre(remaining_json),
         h.tag.pre(pretty_response.html_safe),
       ])
+    when "gallery_dl"
+      h.tag.pre(payload["command"].join(" "))
     else
       "Unknown action #{action}"
     end

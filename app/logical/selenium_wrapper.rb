@@ -1,7 +1,7 @@
 class SeleniumWrapper
   DEFAULT_TIMEOUT = 180
 
-  def self.driver(with_performance: false)
+  def self.   driver(with_performance: false)
     options = Selenium::WebDriver::Chrome::Options.new(exclude_switches: ["enable-automation"])
     options.add_argument("--disable-blink-features=AutomationControlled")
 
