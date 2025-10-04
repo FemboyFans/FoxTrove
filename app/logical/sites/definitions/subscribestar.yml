@@ -7,4 +7,4 @@ gallery_templates:
 image_domains: # Also uses ss-uploads-prod.b-cdn.net but doesn't need headers
   - subscribestar.com
 username_identifier_regex: "[a-zA-Z0-9_-]{3,512}"
-submission_template: https://subscribestar.com/{site_submission_identifier}
+submission_template: https://subscribestar.com/posts/{site_submission_identifier}
