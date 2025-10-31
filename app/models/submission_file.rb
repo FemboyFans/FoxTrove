@@ -304,7 +304,7 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
-  def similar(score = 80)
+  def similar(score = 90)
     files = IqdbProxy.query_submission_file(self)
     notices = []
     files.each do |f|
@@ -344,8 +344,12 @@ class SubmissionFile < ApplicationRecord
     by_id.values
   end
 
-  def similar_sources(template)
-    similar = similar(90)
+  def find_similar(site, score = 90)
+    similar(score).flatten.find { |s| s[:type] == :different_site && s[:file].artist_url.site_type == site.to_s }&.try(:[], :file)
+  end
+
+  def similar_sources(template, score = 90)
+    similar = similar(score)
 
     sources = similar.flatten.filter { |s| s[:type] == :different_site }
     sources.map { |s| SubmissionFile.upload_source(s[:file], template) }.flatten
@@ -402,22 +406,23 @@ class SubmissionFile < ApplicationRecord
     tags = []
     extra = ""
     if artist.e621_tag.present?
-      if artist_url.site_type == "e621"
+      sub = artist_url.site_type == "e621" ? self : find_similar("e621")
+      if sub
         post = begin
-          E6ApiClient.get_post_cached(artist_submission.identifier_on_site.to_i)
+          E6ApiClient.get_post_cached(sub.artist_submission.identifier_on_site.to_i)
         rescue StandardError
           nil
         end
-        if artist.is_commissioner?
+        if sub.artist.is_commissioner?
           extra += "&tags-artist=#{post['tags']['artist'].map { |t| "artist:#{t}" }.join('+')}" if post.present? && post["tags"]["artist"].any?
-          category = post["tags"].find { |_k, v| v.include?(artist.e621_tag) }.first
+          category = post["tags"].find { |_k, v| v.include?(sub.artist.e621_tag) }.first
           tags << if category && %w[general].exclude?(category) # rubocop:disable Metrics/BlockNesting
-            "#{category}:#{artist.e621_tag}"
+            "#{category}:#{sub.artist.e621_tag}"
           else
-            artist.e621_tag
+            sub.artist.e621_tag
           end
         else
-          extra += "&tags-artist=artist:#{artist.e621_tag}"
+          extra += "&tags-artist=artist:#{sub.artist.e621_tag}"
         end
         if post["tags"]["character"].present?
           extra += "&tags-character=#{post['tags']['character'].map { |t| "character:#{t}" }.join('+')}"
@@ -429,7 +434,7 @@ class SubmissionFile < ApplicationRecord
           year = post["tags"]["meta"].find { |v| /\A\d{4}\z/.match?(v) }
           tags << "meta:#{year}" if year
         end
-        tags << "meta:#{created_at_on_site.year}" unless tags.any? { |t| t.start_with?("meta:") }
+        tags << "meta:#{sub.created_at_on_site.year}" unless tags.any? { |t| t.start_with?("meta:") }
         sources += post["sources"].reject { |s| EXCLUDE_SOURCE_EXTS.any? { |ext| s.ends_with?(ext) } || EXCLUDE_SOURCES.any? { |domain| s.include?(domain) } }
       else
         if artist.is_commissioner?
