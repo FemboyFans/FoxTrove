@@ -304,11 +304,11 @@ class SubmissionFile < ApplicationRecord
     end
   end
 
-  def similar
+  def similar(score = 80)
     files = IqdbProxy.query_submission_file(self)
     notices = []
     files.each do |f|
-      next if f[:score] < 80
+      next if f[:score] < score
 
       file = f[:submission_file]
       if file.width > width && file.height > height
@@ -344,6 +344,13 @@ class SubmissionFile < ApplicationRecord
     by_id.values
   end
 
+  def similar_sources(template)
+    similar = similar(90)
+
+    sources = similar.flatten.filter { |s| s[:type] == :different_site }
+    sources.map { |s| SubmissionFile.upload_source(s[:file], template) }.flatten
+  end
+
   def similar_text(sim, template)
     case sim[:type]
     when :larger
@@ -371,11 +378,16 @@ class SubmissionFile < ApplicationRecord
     direct_url.starts_with?("file://") || direct_url.include?("wixmp.com")
   end
 
+  def self.upload_source(submission, template)
+    sources = []
+    sources << template.gallery_url(submission.artist_url) unless NO_GALLERY_SITES.include?(submission.artist_url.site_type) || (submission.artist.is_commissioner? && submission.artist_url.site_type == "e621")
+    sources << template.submission_url(submission.artist_submission)
+    sources
+  end
+
   def upload_url(template)
     # return nil unless e6_posts.empty?
-    sources = []
-    sources << template.gallery_url(artist_url) unless NO_GALLERY_SITES.include?(artist_url.site_type) || (artist.is_commissioner? && artist_url.site_type == "e621")
-    sources << template.submission_url(artist_submission)
+    sources = SubmissionFile.upload_source(self, template) + similar_sources(template)
     file_url = uploadable? ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = ""
     if artist_submission.description_on_site.present?
