@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_01_171404) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_31_074135) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -214,6 +214,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_01_171404) do
     t.binary "iqdb_hash"
     t.timestamp "hidden_from_search_at"
     t.string "file_error"
+    t.integer "duration"
     t.index ["artist_submission_id", "file_identifier"], name: "index_submission_files_on_artist_submission_id_and_file_id", unique: true
     t.index ["artist_submission_id"], name: "index_submission_files_on_artist_submission_id"
   end

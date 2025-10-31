@@ -1,0 +1,8 @@
+Description:
+    Generates a new fixer for the database
+
+Example:
+    bin/rails generate fixer fixer_name
+
+    This will create:
+        db/fixes/<id>_fixer_name.rb

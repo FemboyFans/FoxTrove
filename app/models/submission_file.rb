@@ -97,22 +97,36 @@ class SubmissionFile < ApplicationRecord
   end
 
   def attach_original_from_blob!(blob)
-    metadata = ActiveStorage::Analyzer::ImageAnalyzer::Vips.new(blob).metadata
     raise(AnalysisError, "Failed to analyze") if blob.content_type == "application/octet-stream"
     raise(ContentTypeError, "'#{blob.content_type}' is not allowed") if blob.content_type.in?(Scraper::Submission::MIME_IGNORE)
 
-    self.width = metadata[:width]
-    self.height = metadata[:height]
+    if blob.image?
+      analyzer = ActiveStorage::Analyzer::ImageAnalyzer::Vips.new(blob)
+      metadata = analyzer.metadata
+      self.width  = metadata[:width]
+      self.height = metadata[:height]
+
+      if can_iqdb?
+        begin
+          Vips::Image.new_from_file(file_path_for(blob), fail: true).stats
+        rescue Vips::Error => e
+          self.file_error = e.message.strip
+        end
+      end
+
+    elsif blob.video?
+      analyzer = ActiveStorage::Analyzer::VideoAnalyzer.new(blob)
+      metadata = analyzer.metadata
+      self.width    = metadata[:width]
+      self.height   = metadata[:height]
+      self.duration = metadata[:duration]
+    else
+      raise(ContentTypeError, "Unsupported content type '#{blob.content_type}'")
+    end
+
+    # Common attributes
     self.content_type = blob.content_type
     self.size = blob.byte_size
-
-    if can_iqdb?
-      begin
-        Vips::Image.new_from_file(file_path_for(blob), fail: true).stats
-      rescue Vips::Error => e
-        self.file_error = e.message.strip
-      end
-    end
 
     original.attach(blob)
     save!
