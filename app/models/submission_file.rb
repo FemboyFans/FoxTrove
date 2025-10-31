@@ -347,19 +347,19 @@ class SubmissionFile < ApplicationRecord
   def similar_text(sim, template)
     case sim[:type]
     when :larger
-      "L"
+      template.tag.span(title: "Large") { "L" }
     when :larger_width
-      "LW"
+      template.tag.span(title: "Larger Width") { "LW" }
     when :larger_height
-      "LH"
+      template.tag.span(title: "Larger Height") { "LH" }
     when :different_type
-      "DT-#{Mime::Type.lookup(sim[:file].content_type).symbol.to_s.upcase}"
+      template.tag.span(title: "Different Type") { "DT-#{Mime::Type.lookup(sim[:file].content_type).symbol.to_s.upcase}" }
     when :larger_filesize
-      "LF (#{template.number_to_human_size(sim[:file].size)})"
+      template.tag.span(title: "Larger Filesize") { "LF (#{template.number_to_human_size(sim[:file].size)})" }
     when :different_site
-      "DS"
+      template.tag.span(title: "Different Site") { "DS" }
     else
-      "Unknown similarity type: :#{sim[:type]} for submission #{sim[:file].id}"
+      template.tag.span(title: "Unknown similarity type: :#{sim[:type]} for submission #{sim[:file].id}") { "UNK" }
     end
   end
 
