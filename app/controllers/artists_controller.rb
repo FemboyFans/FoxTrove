@@ -84,6 +84,9 @@ class ArtistsController < ApplicationController
       if submission.nil?
         raise("No submission created. Duplicate?")
       end
+      unless submission.is_a?(SubmissionFile)
+        raise("Failed to create submission: #{submission.inspect}")
+      end
       raise(ActiveRecord::Rollback) if submission.errors.any?
       redirect_to(submission_files_path(search: { artist_submission_id: @artist_submission.id } ))
     end
