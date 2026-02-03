@@ -1,8 +1,8 @@
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE:-ruby:3.4.5-alpine3.22} AS ruby-builder
+FROM ${BASE_IMAGE:-ruby:4.0.0-alpine3.23} AS ruby-builder
 
 RUN apk --no-cache add build-base cmake git \
-  libffi-dev postgresql17-dev yaml-dev git
+  libffi-dev postgresql18-dev yaml-dev git
 
 COPY Gemfile Gemfile.lock ./
 RUN gem i foreman && bundle install \
@@ -10,17 +10,17 @@ RUN gem i foreman && bundle install \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
  && find /usr/local/bundle/gems/ -name "*.o" -delete
 
-FROM node:22-alpine3.22 AS node-downloader
+FROM node:24-alpine3.23 AS node-downloader
 
-RUN npm install esbuild@0.25.9 -g
+RUN npm install esbuild@0.27.2 -g
 
-FROM ${BASE_IMAGE:-ruby:3.4.5-alpine3.22}
+FROM ${BASE_IMAGE:-ruby:4.0.0-alpine3.23}
 
 WORKDIR /app
 
 RUN apk --no-cache add \
   tzdata \
-  postgresql17-client \
+  postgresql18-client \
   vips \
   ffmpeg \
   sudo \
