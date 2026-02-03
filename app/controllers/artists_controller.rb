@@ -80,6 +80,14 @@ class ArtistsController < ApplicationController
         created_at: params[:created_at] || @artist_submission.created_at.iso8601,
         identifier: params[:identifier] || File.basename(URI.parse(params[:url]).path)
       }
+
+      if params[:background].to_s.truthy?
+        job = CreateSubmissionFileJob.perform_later(@artist_submission, file)
+        flash[:notice] = "Job running in background"
+        redirect_to(submission_files_path(search: { artist_submission_id: @artist_submission.id }, job_id: job.provider_job_id ))
+        return
+      end
+
       submission = CreateSubmissionFileJob.perform_now(@artist_submission, file)
       if submission.nil?
         raise("No submission created. Duplicate?")
@@ -115,6 +123,6 @@ class ArtistsController < ApplicationController
   end
 
   def attach_params
-    params.fetch(:artist_submission, {}).permit(%i[url created_at identifier])
+    params.fetch(:artist_submission, {}).permit(%i[url created_at identifier background])
   end
 end
