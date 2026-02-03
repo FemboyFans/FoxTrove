@@ -82,7 +82,7 @@ class ArtistsController < ApplicationController
         url: params[:url],
         file: params[:file]&.path,
         rm_file: false,
-        created_at: params[:created_at] || @artist_submission.created_at.iso8601,
+        created_at: params[:created_at] || @artist_submission.created_at_on_site.iso8601,
         identifier: params[:identifier].presence || File.basename(URI.parse(params[:url]).path)
       }
       existing = @artist_submission.submission_files.find_by(file_identifier: file[:identifier])
