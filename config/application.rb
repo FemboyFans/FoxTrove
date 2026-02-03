@@ -8,6 +8,7 @@ require "active_storage/engine"
 require "action_controller/railtie"
 require "action_view/railtie"
 require "rails/test_unit/railtie"
+require_relative("../lib/middleware/silence_stats_logging")
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -51,5 +52,6 @@ module FoxTrove
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    config.middleware.insert_before(Rails::Rack::Logger, Middleware::SilenceStatsLogging)
   end
 end
