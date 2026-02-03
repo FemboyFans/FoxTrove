@@ -81,6 +81,7 @@ class ArtistsController < ApplicationController
       file = {
         url: params[:url],
         file: params[:file]&.path,
+        rm_file: false,
         created_at: params[:created_at] || @artist_submission.created_at.iso8601,
         identifier: params[:identifier] || File.basename(URI.parse(params[:url]).path)
       }
@@ -90,6 +91,14 @@ class ArtistsController < ApplicationController
       end
 
       if params[:background].to_s.truthy?
+        if file[:file]
+          dir = Rails.root.join("tmp", "uploads")
+          FileUtils.mkdir_p(dir)
+          bg_path = File.join(dir, params[:file].original_filename)
+          File.copy_stream(file[:file], bg_path)
+          file[:file] = bg_path
+          file[:rm_file] = true
+        end
         job = CreateSubmissionFileJob.perform_later(@artist_submission, file)
         flash[:notice] = "Job running in background"
         redirect_to(submission_files_path(search: { artist_submission_id: @artist_submission.id }, job_id: job.provider_job_id ))

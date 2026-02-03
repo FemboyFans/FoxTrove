@@ -68,7 +68,7 @@ class SubmissionFile < ApplicationRecord
     ActiveStorage::Blob.create_and_upload!(io: io, filename: filename, content_type: mime_type, identify: false)
   end
 
-  def self.from_attachable(attachable:, artist_submission:, url:, created_at:, file_identifier:)
+  def self.from_attachable(attachable:, artist_submission:, url:, created_at:, file_identifier:, filename: nil)
     submission_file = SubmissionFile.new(
       artist_submission: artist_submission,
       direct_url: url,
@@ -77,7 +77,7 @@ class SubmissionFile < ApplicationRecord
     )
     case attachable
     when File, Tempfile
-      submission_file.attach_original_from_file!(attachable)
+      submission_file.attach_original_from_file!(attachable, filename)
     when ActiveStorage::Blob
       submission_file.attach_original_from_blob!(attachable)
     else
@@ -86,8 +86,8 @@ class SubmissionFile < ApplicationRecord
     return submission_file
   end
 
-  def attach_original_from_file!(file)
-    filename = File.basename(Addressable::URI.parse(direct_url).path)
+  def attach_original_from_file!(file, filename = nil)
+    filename ||= File.basename(Addressable::URI.parse(direct_url).path)
     blob = self.class.blob_for_io(file, filename)
     begin
       attach_original_from_blob!(blob) if blob

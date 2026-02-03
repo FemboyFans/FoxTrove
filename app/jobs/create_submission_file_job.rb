@@ -6,19 +6,21 @@ class CreateSubmissionFileJob < ConcurrencyControlledJob
     submission_file = SubmissionFile.find_by(artist_submission: artist_submission, file_identifier: file[:identifier])
     return if submission_file
 
-    create = -> (url, bin_file) do
+    create = -> (url, bin_file, **kwargs) do
       SubmissionFile.from_attachable(
         attachable: bin_file,
         artist_submission: artist_submission,
         url: url,
         created_at: file[:created_at],
         file_identifier: file[:identifier],
-        )
+        **kwargs
+      )
     end
 
     if file[:file]
       bin_file = File.open(file[:file])
-      create.call(file[:url] || "file://#{bin_file.path}", bin_file)
+      create.call(file[:url] || "file://#{bin_file.path}", bin_file, filename: File.basename(bin_file.path))
+      File.delete(file[:file]) if file[:rm_file] && File.exist?(file[:file])
     else
       # Deviantarts download links expire, they need to be fetched when you actually use them
       url = file[:url].presence || artist_submission.artist_url.scraper.get_download_link(file[:url_data])
