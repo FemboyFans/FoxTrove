@@ -2,6 +2,10 @@ module Scraper
   class Furaffinity < BufferedScraper
     STATE = "page"
 
+    def self.missing_config_keys
+      [%i[furaffinity_user furaffinity_pass], %i[furaffinity_cookie_a furaffinity_cookie_b]].map { |set| set.select { |key| Config.send(key).blank? } }
+    end
+
     def initialize(artist_url)
       super
       @page = 1
@@ -110,6 +114,8 @@ module Scraper
     end
 
     def fetch_cookies
+      manual = [Config.furaffinity_cookie_a, Config.furaffinity_cookie_b]
+      return manual if manual.all?(&:present?)
       SeleniumWrapper.driver do |driver|
         driver.navigate.to "https://www.furaffinity.net/login"
 

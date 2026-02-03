@@ -25,9 +25,16 @@
         <td>
           <% if definition.manually_disabled? %>
             Manually disabled
-          <% elsif definition.missing_config_keys.any? %>
-            Missing config <%= "key".pluralize(definition.missing_config_keys.count) %>:<br>
-            <%= definition.missing_config_keys.join(", ") %>
+          <% elsif definition.missing_config_keys.all?(&:any?) %>
+            <% if definition.missing_config_keys.length == 1 %>
+              Missing config <%= "key".pluralize(definition.missing_config_keys.count) %>:<br>
+              <%= definition.missing_config_keys.join(", ") %>
+            <% else %>
+              Missing config key(s) for any group:<br>
+              <% definition.missing_config_keys.each do |set| %>
+                - <%= set.join(", ") %><br>
+              <% end %>
+            <% end %>
           <% elsif !definition.scraper? %>
             Removed
           <% else %>

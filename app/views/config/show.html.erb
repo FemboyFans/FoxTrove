@@ -2,11 +2,24 @@
 
 <%= link_to @definition.homepage, @definition.homepage %><br>
 
-<% if @definition.missing_config_keys.any? %>
+<% if @definition.missing_config_keys.all?(&:any?) %>
   <div>
+    <% if @definition.missing_config_keys.size == 1 %>
     The following must be set for the scraper to function:
     <% @definition.missing_config_keys.each do |key| %>
       <%= strip_config_prefix(@definition, key) %>
+    <% end %>
+    <% else %>
+      The following groups are missing config keys, one must be completed for the scraper to function:
+        <% @definition.missing_config_keys.each do |set| %>
+          <ul>
+            <% set.each do |key| %>
+            <li>
+              <%= strip_config_prefix(@definition, key) %>
+            </li>
+            <% end %>
+          </ul>
+        <% end %>
     <% end %>
   </div>
 <% end %>

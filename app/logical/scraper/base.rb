@@ -28,6 +28,10 @@ module Scraper
       all_config_keys - optional_config_keys - [:"#{site_type}_disabled?"]
     end
 
+    def self.missing_config_keys
+      [required_config_keys.select { |key| Config.send(key).blank? }]
+    end
+
     def process!
       jumpstart(@artist_url.scraper_status[self.class::STATE]) if @artist_url.scraper_status.present?
       @artist_url.scraper_status["started_at"] ||= Time.current
