@@ -19,13 +19,23 @@ module Scraper
     end
 
     def to_submission(indexpost)
-      submission = fetch_post(indexpost["id"])["post"]
+      sub = ArtistSubmission.joins(:artist_url).find_by(identifier_on_site: indexpost["id"], "artist_urls.url_identifier": url_identifier)
       s = Submission.new
-      s.identifier = submission["id"]
-      s.title = submission["title"]
-      s.description = submission["content"]
-      s.created_at = DateTime.parse(submission["published"])
-      files = [submission["file"], *submission["attachments"]].uniq.compact_blank
+      files = []
+      if sub
+        s.identifier = sub.identifier_on_site
+        s.title = sub.title_on_site
+        s.description = sub.description_on_site
+        s.created_at = sub.created_at_on_site
+        files += [indexpost["file"], *indexpost["attachments"]].uniq.compact_blank
+      else
+        submission = fetch_post(indexpost["id"])["post"]
+        s.identifier = submission["id"]
+        s.title = submission["title"]
+        s.description = submission["content"]
+        s.created_at = DateTime.parse(submission["published"])
+        files += [submission["file"], *submission["attachments"]].uniq.compact_blank
+      end
 
       files.each do |file|
         path = file["path"].gsub(" ", "%20")
@@ -59,6 +69,11 @@ module Scraper
 
     def get_server(path)
       return "https://img.kemono.cr/thumbnail" if path.start_with?("/attachments")
+      file = SubmissionFile.joins(artist_submission: :artist_url).find_by(file_identifier: path[7, HASH_LENGTH], "artist_urls.url_identifier": url_identifier)
+      if file&.direct_url
+        srv = SERVERS.find { |s| file.direct_url.start_with?(s) }
+        return srv if srv
+      end
 
       SERVERS.each do |server|
         response = client.head("#{server}/data#{path}", should_raise: false, should_log: false)
@@ -70,7 +85,7 @@ module Scraper
           loc = response.headers.get("location")
           srv = SERVERS.find { |s| loc.any? { |l| l.start_with?(s) } }
           return srv if srv
-          raise("Got 302 to unspected location \"#{loc.size == 1 ? loc.first : loc.inspect}\" for #{path} on #{server}")
+          raise("Got 302 to unexpected location \"#{loc.size == 1 ? loc.first : loc.inspect}\" for #{path} on #{server}")
         when 403
           next # ignore
         else
