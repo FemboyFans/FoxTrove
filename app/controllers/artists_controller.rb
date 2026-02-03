@@ -80,6 +80,10 @@ class ArtistsController < ApplicationController
         created_at: params[:created_at] || @artist_submission.created_at.iso8601,
         identifier: params[:identifier] || File.basename(URI.parse(params[:url]).path)
       }
+      existing = @artist_submission.submission_files.find_by(file_identifier: file[:identifier])
+      if existing
+        raise("Duplicate identifier \"#{file[:identifier]}\" for file ##{existing.id}")
+      end
 
       if params[:background].to_s.truthy?
         job = CreateSubmissionFileJob.perform_later(@artist_submission, file)
