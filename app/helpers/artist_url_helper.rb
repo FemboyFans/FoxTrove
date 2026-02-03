@@ -7,6 +7,10 @@ module ArtistUrlHelper
     submission.artist_url.site.submission_url(submission)
   end
 
+  def source_url(submission)
+    submission.artist_url.site.source_url(submission)
+  end
+
   def site_types_collection
     Sites.definitions.map { |definition| [definition.display_name, definition.site_type] }.sort
   end

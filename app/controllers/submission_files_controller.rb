@@ -17,6 +17,16 @@ class SubmissionFilesController < ApplicationController
     redirect_back_or_to(submission_files_path(search: { artist_submission_id: @submission_file.artist_submission_id } ))
   end
 
+  def upload
+    @submission_file = SubmissionFile.find(params[:id])
+    url = @submission_file.upload_url
+    if url.nil?
+      flash[:notice] = "No upload url"
+      return redirect_back_or_to(submission_file_path(@submission_file))
+    end
+    redirect_to(url, allow_other_host: true)
+  end
+
   def modify_backlog
     submission_file = SubmissionFile.find(params[:id])
     in_backlog = params[:type] == "add"

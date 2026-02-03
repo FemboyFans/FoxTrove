@@ -33,11 +33,9 @@
     | <%= link_to "DLO", submission_file.url_for(:original, disposition: :inline), title: "Direct Link Onsite" %>
     | <%= link_to "REV", submission_file_path(submission_file), title: "Similar Indexed" %>
   </div>
-  <% unless submission_file.upload_url(self).nil? %>
     <div class="upload-link">
-      <%= link_to_external "Upload", submission_file.upload_url(self) %>
+      <%= link_to_external "Upload", upload_submission_file_path(submission_file), target: "_blank" %>
     </div>
-  <% end %>
   <% submission_file.similar.each do |grp| %>
     <div class="larger-links-<%= grp.first[:file].id %>">
       <% grp.each do |sim| %>

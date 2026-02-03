@@ -27,6 +27,10 @@
           Selenium has been launched, you may need to solve a captcha.
           <%= link_to "Click here", selenium_path, target: "_blank", rel: "noopener" %> to view.
         </div>
+          <div id="notice" style="<%= "display: none;" unless flash[:notice] %>">
+            <span><%= flash[:notice] %></span>
+            <a href="#" id="close-notice-link">close</a>
+          </div>
         <%= yield %>
       </div>
       <% if instance_variable_defined?(:@paginator) %>

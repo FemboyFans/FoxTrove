@@ -350,11 +350,11 @@ class SubmissionFile < ApplicationRecord
     similar(score).flatten.find { |s| s[:type] == :different_site && s[:file].artist_url.site_type == site.to_s }&.try(:[], :file)
   end
 
-  def similar_sources(template, score = 90)
+  def similar_sources(score = 90)
     similar = similar(score)
 
     sources = similar.flatten.filter { |s| s[:type] == :different_site }
-    sources.map { |s| SubmissionFile.upload_source(s[:file], template) }.flatten
+    sources.map { |s| SubmissionFile.upload_source(s[:file]) }.flatten
   end
 
   def similar_text(sim, template)
@@ -384,16 +384,17 @@ class SubmissionFile < ApplicationRecord
     direct_url.starts_with?("file://") || direct_url.include?("wixmp.com")
   end
 
-  def self.upload_source(submission, template)
+  def self.upload_source(submission)
+    helper = Class.new.extend(ArtistUrlHelper)
     sources = []
-    sources << template.gallery_url(submission.artist_url) unless NO_GALLERY_SITES.include?(submission.artist_url.site_type) || (submission.artist.is_commissioner? && submission.artist_url.site_type == "e621")
-    sources << template.submission_url(submission.artist_submission)
+    sources << helper.gallery_url(submission.artist_url) unless NO_GALLERY_SITES.include?(submission.artist_url.site_type) || (submission.artist.is_commissioner? && submission.artist_url.site_type == "e621")
+    sources << helper.source_url(submission.artist_submission)
     sources
   end
 
-  def upload_url(template)
+  def upload_url
     # return nil unless e6_posts.empty?
-    sources = SubmissionFile.upload_source(self, template) + similar_sources(template)
+    sources = SubmissionFile.upload_source(self) + similar_sources
     file_url = uploadable? ? "" : "upload_url=#{CGI.escape(direct_url)}&"
     description = ""
     if artist_submission.description_on_site.present?

@@ -1,6 +1,7 @@
 import "../stylesheet/application";
 
 import ClickMode from "./click_mode";
+import Notice from "./notice";
 import MultiselectMode from "./multiselect_mode";
 import Samples from "./samples";
 import Selenium from "./selenium";
@@ -10,6 +11,7 @@ import UJS from "./ujs";
 
 document.addEventListener("DOMContentLoaded", () => {
   ClickMode.init();
+  Notice.init();
   Toggleable.init();
   MultiselectMode.init();
   Samples.init();

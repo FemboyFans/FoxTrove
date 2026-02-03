@@ -9,6 +9,7 @@ module Sites
       @gallery_templates = definition_data["gallery_templates"].map { |t| Addressable::Template.new("{prefix}#{t}{/remaining}{?remaining}{#remaining}") }
       @username_identifier_regex = Regexp.new("^#{definition_data['username_identifier_regex']}$")
       @submission_template = Addressable::Template.new(definition_data["submission_template"]) if definition_data["submission_template"]
+      @source_template = (Addressable::Template.new(definition_data["source_template"]) if definition_data["source_template"]) || @submission_template
       @image_domains = definition_data["image_domains"] || []
       @download_headers = definition_data["download_headers"] || {}
     end
@@ -36,6 +37,14 @@ module Sites
 
     def submission_url(submission)
       @submission_template.expand(
+        site_artist_identifier: submission.artist_url.url_identifier,
+        site_artist_api_identifier: submission.artist_url.api_identifier,
+        site_submission_identifier: submission.identifier_on_site,
+      ).to_s
+    end
+
+    def source_url(submission)
+      @source_template.expand(
         site_artist_identifier: submission.artist_url.url_identifier,
         site_artist_api_identifier: submission.artist_url.api_identifier,
         site_submission_identifier: submission.identifier_on_site,
