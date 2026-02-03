@@ -14,7 +14,7 @@ services:
     image: foxtrove
     environment:
       <<: *common-env
-      RAILS_SERVER_EXEC: bin/rails server -p ${EXPOSED_SERVER_PORT:-9000} -b 0.0.0.0 --pid /tmp/server.pid
+      RAILS_SERVER_EXEC: bin/rails server -p ${EXPOSED_SERVER_PORT:-9000} -b 0.0.0.0 --pid /tmp/rails-server.pid
       ESBUILD_EXEC: >-
         esbuild app/typescript/application.ts
         --target=chrome111,firefox111,safari16
