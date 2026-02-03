@@ -9,6 +9,8 @@ Rails.application.routes.draw do
     member do
       post :enqueue_all_urls
       post :sync_e621
+      get :add_attachment
+      post :add_attachment
     end
     collection do
       post :enqueue_everything
@@ -19,7 +21,7 @@ Rails.application.routes.draw do
       post :enqueue
     end
   end
-  resources :submission_files, only: %i[index show] do
+  resources :submission_files, only: %i[index show destroy] do
     member do
       post :update_e6_posts
       put :modify_backlog

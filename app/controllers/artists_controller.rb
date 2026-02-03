@@ -69,6 +69,26 @@ class ArtistsController < ApplicationController
     Artist.find(params[:id]).sync_e621
   end
 
+  def add_attachment
+    SubmissionFile.transaction do
+      @artist = Artist.find(params[:id])
+      @artist_submission = ArtistSubmission.find(params.dig(:artist, :submission_id))
+      return render if request.get?
+      params = attach_params
+      file = {
+        url: params[:url],
+        created_at: params[:created_at] || @artist_submission.created_at.iso8601,
+        identifier: params[:identifier] || File.basename(URI.parse(params[:url]).path)
+      }
+      submission = CreateSubmissionFileJob.perform_now(@artist_submission, file)
+      if submission.nil?
+        raise("No submission created. Duplicate?")
+      end
+      raise(ActiveRecord::Rollback) if submission.errors.any?
+      redirect_to(submission_files_path(search: { artist_submission_id: @artist_submission.id } ))
+    end
+  end
+
   private
 
   def artist_params
@@ -89,5 +109,9 @@ class ArtistsController < ApplicationController
     artist.url_string.lines.map(&:strip).compact_blank.each do |url|
       artist.add_artist_url(url)
     end
+  end
+
+  def attach_params
+    params.fetch(:artist_submission, {}).permit(%i[url created_at identifier])
   end
 end

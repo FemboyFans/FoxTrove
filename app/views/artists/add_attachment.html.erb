@@ -1,0 +1,9 @@
+<h1>Add Attachment</h1>
+<%= form_with model: @artist_submission, url: add_attachment_artist_path(@artist, artist: { submission_id: @artist_submission.id }), method: :post do |f| %>
+  <%= f.input :url, as: :string, required: true %>
+  <%= f.input :created_at, as: :datetime, label: "Creation Date" %>
+  <%= f.input :identifier, as: :string, label: "ID" %>
+  <%= f.submit("Attach") %>
+<% end %>
+
+<% page_title "Add attachment to ##{@artist_submission.id} on #{@artist_submission.artist_url.site.display_name}" %>

@@ -21,6 +21,8 @@
     <% else %>
       <%= link_to "H", modify_hidden_submission_file_path(submission_file, type: "add"), title: "Remove from search", method: :put %>
     <% end %>
+    <%= link_to "A", submission_files_path(search: { artist_submission_id: submission_file.artist_submission_id }), title: "Open submission" %>
+    <%= link_to "D", submission_file_path(submission_file), title: "Delete file", data: { confirm: "Are you sure? This cannot be undone." }, method: :delete %>
     <% backlogged = submission_file.added_to_backlog_at %>
     <%= link_to("-", modify_backlog_submission_file_path(submission_file, type: "remove"), title: "Remove from backlog", method: :put, class: "remove-from-backlog", style: ("display: none;" unless backlogged)) %>
     <%= link_to("+", modify_backlog_submission_file_path(submission_file, type: "add"), title: "Add to backlog", method: :put, class: "add-to-backlog", style: ("display: none;" if backlogged)) %>

@@ -83,6 +83,7 @@ class SubmissionFile < ApplicationRecord
     else
       raise ArgumentError, "'#{attachable.class}' is not supported"
     end
+    return submission_file
   end
 
   def attach_original_from_file!(file)
@@ -244,6 +245,7 @@ class SubmissionFile < ApplicationRecord
         q = q.zero_sources if params[:zero_sources] == "1"
         q = q.zero_artists if params[:zero_artists] == "1"
         q = q.attribute_matches(params[:content_type], :content_type)
+        q = q.attribute_matches(params[:artist_submission_id], :artist_submission_id)
         q = q.attribute_nil_check(params[:in_backlog], :added_to_backlog_at)
         q = q.attribute_nil_check(params[:hidden_from_search] || false, :hidden_from_search_at)
         q = q.attribute_nil_check(params[:corrupt], :file_error)
@@ -294,7 +296,7 @@ class SubmissionFile < ApplicationRecord
       end
 
       def search_params
-        [:artist_id, :site_type, :upload_status, :corrupt, :zero_sources, :zero_artists, :larger_only_filesize_threshold, :content_type, :title, :description, { artist_url_id: [] }, :in_backlog, :order]
+        [:artist_id, :site_type, :upload_status, :corrupt, :zero_sources, :zero_artists, :larger_only_filesize_threshold, :content_type, :title, :description, { artist_url_id: [] }, :in_backlog, :order, :artist_submission_id]
       end
 
       def paginate(params)

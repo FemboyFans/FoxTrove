@@ -10,7 +10,7 @@ module Scraper
     end
 
     def fetch_next_batch
-      response = make_request("/api/v1/patreon/user/#{url_identifier}", {
+      response = make_request("/api/v1/patreon/user/#{url_identifier}/posts", {
         o: @offset,
       })
       end_reached if response.size < 50
@@ -18,12 +18,13 @@ module Scraper
       response
     end
 
-    def to_submission(submission)
+    def to_submission(indexpost)
+      submission = fetch_post(indexpost["id"])["post"]
       s = Submission.new
       s.identifier = submission["id"]
       s.title = submission["title"]
       s.description = submission["content"]
-      s.created_at = DateTime.parse submission["published"]
+      s.created_at = DateTime.parse(submission["published"])
       files = [submission["file"], *submission["attachments"]].uniq.compact_blank
 
       files.each do |file|
@@ -62,12 +63,26 @@ module Scraper
       SERVERS.each do |server|
         response = client.head("#{server}/data#{path}", should_raise: false, should_log: false)
         return server if response.status == 200
-        unless response.status == 403
+        case response.status
+        when 200
+          return server
+        when 302
+          loc = response.headers.get("location")
+          srv = SERVERS.find { |s| loc.any? { |l| l.start_with?(s) } }
+          return srv if srv
+          raise("Got 302 to unspected location \"#{loc.size == 1 ? loc.first : loc.inspect}\" for #{path} on #{server}")
+        when 403
+          next # ignore
+        else
           raise("Found server #{server} for #{path}, but it seems to not be working: #{response.status}")
         end
       end
 
       raise("Could not find server for #{path}")
+    end
+
+    def fetch_post(id)
+      make_request("/api/v1/patreon/user/#{url_identifier}/post/#{id}")
     end
   end
 end

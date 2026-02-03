@@ -1,6 +1,7 @@
 class SubmissionFilesController < ApplicationController
   def index
     @search_params = search_params
+    @artist_submission = ArtistSubmission.find_by(id: @search_params[:artist_submission_id]) if @search_params[:artist_submission_id]
     @paginator, @submission_files = SubmissionFile.search(@search_params).with_everything.paginate(params)
   end
 
@@ -8,6 +9,12 @@ class SubmissionFilesController < ApplicationController
     @submission_file = SubmissionFile.find(params[:id])
     @artist_submission = @submission_file.artist_submission
     @similar = @submission_file.iqdb_similar
+  end
+
+  def destroy
+    @submission_file = SubmissionFile.find(params[:id])
+    @submission_file.destroy
+    redirect_back_or_to(submission_files_path(search: { artist_submission_id: @submission_file.artist_submission_id } ))
   end
 
   def modify_backlog

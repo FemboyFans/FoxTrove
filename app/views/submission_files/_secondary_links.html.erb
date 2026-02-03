@@ -14,4 +14,8 @@
     <%= subnav_link_to "Last known good", set_last_known_good_submission_file_path(@submission_file), method: :put, data: { confirm: "Fix broken scrapers. Everything after this may be downloaded again if it failed in the past but is now fixed through an update. Will not cause duplicate entries." } %>
   <% end %>
 <% end %>
+<% if @artist_submission&.id %>
+  |
+  <%= subnav_link_to "Add Attachment", add_attachment_artist_path(@artist_submission.artist, artist: { submission_id: @artist_submission.id }) %>
+<% end %>
 | <%= render "submission_files/multiselect" %>
