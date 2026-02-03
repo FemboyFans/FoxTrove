@@ -10,6 +10,7 @@ require "action_view/railtie"
 require "rails/test_unit/railtie"
 require_relative("../lib/middleware/silence_stats_logging")
 require_relative("../lib/middleware/silence_active_storage_logging")
+require_relative("../lib/middleware/silence_good_job_logging")
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -55,5 +56,6 @@ module FoxTrove
     # config.eager_load_paths << Rails.root.join("extras")
     config.middleware.insert_before(Rails::Rack::Logger, Middleware::SilenceActiveStorageLogging)
     config.middleware.insert_before(Rails::Rack::Logger, Middleware::SilenceStatsLogging)
+    config.middleware.insert_before(Rails::Rack::Logger, Middleware::SilenceGoodJobLogging)
   end
 end
