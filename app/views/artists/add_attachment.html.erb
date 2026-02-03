@@ -1,6 +1,7 @@
 <h1>Add Attachment</h1>
 <%= form_with model: @artist_submission, url: add_attachment_artist_path(@artist, artist: { submission_id: @artist_submission.id }), method: :post do |f| %>
-  <%= f.input :url, as: :string, required: true %>
+  <%= f.input :url, as: :string %>
+  <%= f.input :file, as: :file %>
   <%= f.input :created_at, as: :datetime, label: "Creation Date" %>
   <%= f.input :identifier, as: :string, label: "ID" %>
   <%= f.input :background, as: :checkbox, label: "Background" %>

@@ -75,8 +75,12 @@ class ArtistsController < ApplicationController
       @artist_submission = ArtistSubmission.find(params.dig(:artist, :submission_id))
       return render if request.get?
       params = attach_params
+      if %i[url file].all? { |p| params[p].blank? }
+        raise("no file or url provided")
+      end
       file = {
         url: params[:url],
+        file: params[:file]&.path,
         created_at: params[:created_at] || @artist_submission.created_at.iso8601,
         identifier: params[:identifier] || File.basename(URI.parse(params[:url]).path)
       }
@@ -127,6 +131,6 @@ class ArtistsController < ApplicationController
   end
 
   def attach_params
-    params.fetch(:artist_submission, {}).permit(%i[url created_at identifier background])
+    params.fetch(:artist_submission, {}).permit(%i[url file created_at identifier background])
   end
 end

@@ -76,7 +76,7 @@ class SubmissionFile < ApplicationRecord
       file_identifier: file_identifier,
     )
     case attachable
-    when Tempfile
+    when File, Tempfile
       submission_file.attach_original_from_file!(attachable)
     when ActiveStorage::Blob
       submission_file.attach_original_from_blob!(attachable)
