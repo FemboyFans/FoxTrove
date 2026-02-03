@@ -14,8 +14,8 @@ module SubmissionFileHelper
   def original_file_tag(submission_file)
     url = submission_file.url_for(:original)
     dimensions = { width: submission_file.width, height: submission_file.height }
-    if submission_file.original.content_type.in? ["video/mp4", "video/webm", "video/quicktime"]
-      video_tag(url, controls: false, class: "submission-file-full hidden", **dimensions)
+    if submission_file.original.content_type.in? %w[video/mp4 video/webm video/quicktime video/x-msvideo]
+      video_tag(url, loading: "lazy", controls: false, class: "submission-file-full hidden", **dimensions)
     else
       image_tag(url, loading: "lazy", class: "submission-file-full hidden", **dimensions)
     end
