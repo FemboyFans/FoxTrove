@@ -2,6 +2,7 @@ module Scraper
   class Subscribestar < Base
     STATE = :date
     DOMAIN = "subscribestar.com"
+    OPTIONAL_CONFIG_KEYS = %i[subscribestar_otp_secret].freeze
 
     def self.all_config_keys
       super - %i[subscribestar_adult_disabled?]
@@ -96,6 +97,12 @@ module Scraper
         driver.find_element(css: "button.for-login[type=submit]").click
         driver.wait_for_element(css: "div.login input[name='password']").send_keys Config.subscribestar_pass
         driver.find_element(css: "button.for-login[type=submit]").click
+
+        if Config.subscribestar_otp_secret.present?
+          otp = ROTP::TOTP.new(Config.subscribestar_otp_secret).now
+          driver.wait_for_element(css: "div.login input[name='code']").send_keys otp
+          driver.find_element(css: "button.for-login[type=submit]").click
+        end
 
         name = "_personalization_id"
         driver.wait_for_cookie(name)
