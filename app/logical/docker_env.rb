@@ -9,6 +9,10 @@ module DockerEnv
     ENV.fetch("IQDB_URL")
   end
 
+  def vnc_url
+    ENV.fetch("VNC_URL")
+  end
+
   def selenium_url
     ENV.fetch("SELENIUM_URL")
   end

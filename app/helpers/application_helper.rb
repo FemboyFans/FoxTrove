@@ -6,7 +6,7 @@ module ApplicationHelper
   end
 
   def selenium_path
-    "https://selenium.local?autoconnect=1"
+    "#{DockerEnv.vnc_url}?autoconnect=1"
   end
 
   # Properly support the method keyword argument

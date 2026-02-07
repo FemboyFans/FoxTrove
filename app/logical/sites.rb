@@ -39,7 +39,7 @@ module Sites
   def download_file(url, artist_submission: nil)
     fixed_uri = fix_url(url)
     headers = download_headers_for_image_uri(fixed_uri, artist_submission: artist_submission)
-    response = HTTPX.plugin(:stream).plugin(:follow_redirects).with(headers: headers, http2: false).get(fixed_uri, stream: true)
+    response = HTTPX.plugin(:stream).plugin(:follow_redirects).with(headers: headers).get(fixed_uri, stream: true)
     outfile = Tempfile.new(binmode: true)
     response.each do |chunk|
       next if [301, 302].include?(response.status) # rubocop:disable Performance/CollectionLiteralInLoop
