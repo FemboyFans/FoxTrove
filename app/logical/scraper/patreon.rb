@@ -2,7 +2,7 @@ module Scraper
   class Patreon < Base
     STATE = :date
     DOMAIN = "patreon.com"
-    OPTIONAL_CONFIG_KEYS = %i[patreon_otp_secret].freeze
+    OPTIONAL_CONFIG_KEYS = %i[patreon_otp_secret patreon_proxy].freeze
 
     def initialize(artist_url)
       super
@@ -11,7 +11,8 @@ module Scraper
 
     def fetch_next_batch
       result = with_cookies do |file|
-        command = "gallery-dl", "-J", "--cookies", file.path, "--filter", "date >= datetime(#{@date.year}, #{@date.month}, #{@date.day}, #{@date.hour}, #{@date.minute}, #{@date.second}) or abort()", "https://#{self.class::DOMAIN}/#{url_identifier}"
+        proxy = "--proxy", Config.patreon_proxy if Config.patreon_proxy.present?
+        command = "gallery-dl", "-J", "--cookies", file.path, "--filter", "date >= datetime(#{@date.year}, #{@date.month}, #{@date.day}, #{@date.hour}, #{@date.minute}, #{@date.second}) or abort()", *proxy, "https://#{self.class::DOMAIN}/#{url_identifier}"
         stdout, stderr, status = Open3.capture3(*command)
         @artist_url.add_log_event(:gallery_dl, {
           date: @date.iso8601,
