@@ -47,5 +47,11 @@ class SeleniumWrapper
     def wait_for_element(timeout: SeleniumWrapper::DEFAULT_TIMEOUT, **)
       wait_for(timeout: timeout) { find_element(**) }
     end
+
+    def wait_for_element_displayed(timeout: SeleniumWrapper::DEFAULT_TIMEOUT, **)
+      element = wait_for_element(timeout: timeout, **)
+      wait_for(timeout: timeout) { find_element(**).displayed? && find_element(**).enabled? }
+      element
+    end
   end
 end

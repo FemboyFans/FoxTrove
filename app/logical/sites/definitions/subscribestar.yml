@@ -1,7 +1,7 @@
 type: ScraperDefinition
 enum_value: subscribestar
 display_name: SubscribeStar
-homepage: https://www.subscribestar.com
+homepage: https://subscribestar.com
 gallery_templates:
   - subscribestar.com/{site_artist_identifier}
 image_domains: # Also uses ss-uploads-prod.b-cdn.net but doesn't need headers

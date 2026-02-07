@@ -57,3 +57,6 @@ trello_key:
 trello_token:
 subscribestar_user:
 subscribestar_pass:
+patreon_user:
+patreon_pass:
+patreon_otp_secret:

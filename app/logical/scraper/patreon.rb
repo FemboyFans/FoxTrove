@@ -1,11 +1,8 @@
 module Scraper
-  class Subscribestar < Base
+  class Patreon < Base
     STATE = :date
-    DOMAIN = "subscribestar.com"
-
-    def self.all_config_keys
-      super - %i[subscribestar_adult_disabled?]
-    end
+    DOMAIN = "patreon.com"
+    OPTIONAL_CONFIG_KEYS = %i[patreon_otp_secret].freeze
 
     def initialize(artist_url)
       super
@@ -34,16 +31,16 @@ module Scraper
         @date = DateTime.parse(recent.last["date"]) if recent&.last
         # first is an arbitrary index, second is a url (possibly absent), last is the actual post
         # each post will have at least two individual entries, the first is the post and the rest are the images
-        raw.group_by { |s| s.last["post_id"] }.values
+        raw.select { |s| s.last["current_user_can_view"] == true }.group_by { |s| s.last["id"] }.values
       end
       end_reached
       result
     end
 
     def with_cookies
-      Tempfile.create(%W[subscribestar-cookies-#{@artist_url.id}- .txt]) do |file|
-        *, personalization_cookie = fetch_cookie
-        file.write("#{personalization_cookie}\n")
+      Tempfile.create(%W[patreon-cookies-#{@artist_url.id}- .txt]) do |file|
+        *, session_cookie = fetch_cookie
+        file.write("#{session_cookie}\n")
         file.flush
         yield(file)
       end
@@ -53,17 +50,17 @@ module Scraper
       post = submission.find { |s| s.length == 2 }.second
       images = submission.select { |s| s.length == 3 }
       s = Submission.new
-      s.identifier = post["post_id"]
-      s.title = ""
-      s.description = post["content"]
+      s.identifier = post["id"]
+      s.title = post["title"]
+      s.description = post["content"] || ""
       s.created_at = DateTime.parse post["date"]
 
       images.each do |(_index, url, img)|
         s.add_file({
-          url: url,
-          created_at: DateTime.parse(img["date"]),
-          identifier: img["id"],
-        })
+                     url: url,
+                     created_at: s.created_at,
+                     identifier: img["file"]["file_name"],
+                   })
       end
       s
     end
@@ -81,23 +78,24 @@ module Scraper
       super(DateTime.parse(value))
     end
 
-    def download_headers
-      personalization_id, = fetch_cookie
-      { Cookie: "_personalization_id=#{personalization_id}" }
-    end
-
     protected
 
     def fetch_cookie
       SeleniumWrapper.driver do |driver|
         driver.navigate.to "https://#{self.class::DOMAIN}/login"
 
-        driver.wait_for_element(css: "div.login input[name='email']").send_keys Config.subscribestar_user
-        driver.find_element(css: "button.for-login[type=submit]").click
-        driver.wait_for_element(css: "div.login input[name='password']").send_keys Config.subscribestar_pass
-        driver.find_element(css: "button.for-login[type=submit]").click
+        driver.wait_for_element(css: "input[name=email]").send_keys Config.patreon_user
+        driver.find_element(css: "button[type=submit]").click
+        driver.wait_for_element_displayed(css: "input[name=current-password]").send_keys Config.patreon_pass
+        driver.find_element(css: "button[type=submit]").click
 
-        name = "_personalization_id"
+        if Config.patreon_otp_secret.present?
+          otp = ROTP::TOTP.new(Config.patreon_otp_secret).now
+          driver.wait_for_element(css: "input[name=one-time-code]").send_keys otp
+          driver.find_element(css: "button[type=submit]").click
+        end
+
+        name = "session_id"
         driver.wait_for_cookie(name)
         cookie = driver.manage.cookie_named(name)
         [cookie[:value], format_cookie(cookie)]
