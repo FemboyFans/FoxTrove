@@ -10,7 +10,7 @@ module Scraper
 
     def initialize(artist_url)
       super
-      @date = artist_url.last_scraped_at.to_datetime || Time.zone.at(0).to_datetime
+      @date = artist_url.last_scraped_at&.to_datetime || Time.zone.at(0).to_datetime
     end
 
     def fetch_next_batch
