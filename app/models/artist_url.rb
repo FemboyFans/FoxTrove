@@ -117,7 +117,7 @@ class ArtistUrl < ApplicationRecord
   end
 
   def disable!
-    update!(is_disabled: true)
+    update!(is_disabled: true, scraper_status: {})
   end
 
   def enable!
