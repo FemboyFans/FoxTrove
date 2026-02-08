@@ -4,7 +4,7 @@ display_name: SubscribeStarAdult
 homepage: https://www.subscribestar.adult
 gallery_templates:
   - subscribestar.adult/{site_artist_identifier}
-image_domains: # Also uses ss-uploads-prod.b-cdn.net but doesn't need headers
+image_domains: # Also uses d3ts7pb9ldoin4.cloudfront.net but doesn't need headers
   - subscribestar.adult
 username_identifier_regex: "[a-zA-Z0-9_-]{3,512}"
 submission_template: https://subscribestar.adult/posts/{site_submission_identifier}

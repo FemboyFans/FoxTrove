@@ -4,6 +4,8 @@ class ArtistsController < ApplicationController
 
     @artist_urls_count = ArtistUrl.select(:artist_id)
       .where(artist: @artists).group(:artist_id).count
+    @artist_urls_visible_count = ArtistUrl.not_hidden.select(:artist_id)
+      .where(artist: @artists).group(:artist_id).count
     @submissions_count = ArtistSubmission.select(:artist_id).joins(:artist_url)
       .where(artist_url: { artist: @artists }).group(:artist_id).count
 
@@ -19,6 +21,7 @@ class ArtistsController < ApplicationController
     @artist = Artist.includes(:artist_urls).find(params[:id])
     @search_params = instance_search_params.merge(artist_id: @artist.id)
     @paginator, @submission_files = SubmissionFile.search(@search_params).with_everything.paginate(params)
+    puts @submission_files.count
     @e6 = @submission_files.select { |sf| sf.artist_url.site_type == "e621" }
     E6ApiClient.get_posts_cached(@e6.map { |sf| sf.artist_submission.identifier_on_site.to_i })
   end

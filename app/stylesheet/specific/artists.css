@@ -5,4 +5,7 @@
 
 .artist-link {
   --icon-size: 1.5rem;
+  &.disabled .artist-name {
+      text-decoration: line-through solid red 15%;
+  }
 }

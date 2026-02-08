@@ -18,6 +18,10 @@ class ArtistUrl < ApplicationRecord
   validates :api_identifier, uniqueness: { scope: :site_type, case_sensitive: false, allow_nil: true }
   after_create :set_api_identifier!
   after_create_commit :enqueue_scraping
+  scope(:enabled, -> { where(is_disabled: false) })
+  scope(:disabled, -> { where(is_disabled: true) })
+  scope(:hidden, -> { where(is_hidden: true) })
+  scope(:not_hidden, -> { where(is_hidden: false) })
 
   enum :site_type, %i[
     twitter furaffinity inkbunny sofurry
@@ -43,7 +47,17 @@ class ArtistUrl < ApplicationRecord
     q = q.attribute_matches(params[:site_type], :site_type)
     q = q.attribute_matches(params[:url_identifier], :url_identifier)
     q = q.attribute_matches(params[:api_identifier], :api_identifier)
-    if params[:missing_api_identifier] == "1"
+    if params[:is_disabled].present?
+      q = q.disabled if params[:is_disabled].to_s.truthy?
+      q = q.enabled if params[:is_disabled].to_s.falsy?
+    end
+    if params[:is_hidden].present?
+      q = q.hidden if params[:is_hidden].to_s.truthy?
+      q = q.not_hidden if params[:is_hidden].to_s.falsy?
+    else
+      q = q.not_hidden
+    end
+    if params[:missing_api_identifier].to_s.truthy?
       scrapers = Sites.definitions.select(&:scraper_enabled?).map(&:site_type)
       q = q.attribute_nil_check("false", :api_identifier).attribute_matches(scrapers, :site_type)
     end
@@ -51,7 +65,7 @@ class ArtistUrl < ApplicationRecord
   end
 
   def set_api_identifier!
-    return unless scraper_enabled?
+    return if !scraper_enabled? || is_disabled?
 
     begin
       self.api_identifier = scraper.fetch_api_identifier
@@ -84,7 +98,7 @@ class ArtistUrl < ApplicationRecord
 
   def enqueue_scraping
     return sync_e621 if site_type == "femboyfans"
-    return unless scraper_enabled?
+    return if !scraper_enabled? || is_disabled?
     raise MissingApiIdentifier.new(url_identifier, site_type) unless api_identifier
 
     ScrapeArtistUrlJob.perform_later(self)
@@ -100,5 +114,21 @@ class ArtistUrl < ApplicationRecord
     return unless site_type == "e621"
 
     E6UpdateReplacedJob.perform_later(self)
+  end
+
+  def disable!
+    update!(is_disabled: true)
+  end
+
+  def enable!
+    update!(is_disabled: false)
+  end
+
+  def hide!
+    update!(is_hidden: true)
+  end
+
+  def unhide!
+    update!(is_hidden: false)
   end
 end

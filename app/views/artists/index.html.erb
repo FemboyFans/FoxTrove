@@ -24,7 +24,12 @@
       <tr>
         <td><%= link_to artist.id, artist_path(artist) %></td>
         <td><%= artist.formatted_name %></td>
-        <td><%= @artist_urls_count[artist.id] || 0 %></td>
+        <td>
+          <%= @artist_urls_visible_count[artist.id] || 0 %>
+          <% if @artist_urls_count[artist.id] != @artist_urls_visible_count[artist.id] %>
+            (<%= @artist_urls_count[artist.id] %>)
+          <% end %>
+        </td>
         <td><%= oldest_last_scraped_at_text(artist) %></td>
         <td><%= @submissions_count[artist.id] || 0 %></td>
         <td><%= @submission_files_count[artist.id] || 0 %></td>

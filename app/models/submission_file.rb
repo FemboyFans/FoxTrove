@@ -254,6 +254,7 @@ class SubmissionFile < ApplicationRecord
         q = q.join_attribute_matches(params[:artist_url_id], artist_submission: { artist_url: :id })
         q = q.join_attribute_matches(params[:artist_id], artist_submission: { artist_url: { artist: :id } })
         q = q.join_attribute_matches(params[:site_type], artist_submission: { artist_url: :site_type })
+        q = q.joins(:artist_submission).where("artist_submissions.artist_url_id": ArtistUrl.not_hidden) unless params[:show_hidden_urls].to_s.truthy?
         case params[:order]
         when "filesize_asc", "size_asc"
           q.order(size: :asc, created_at_on_site: :desc, file_identifier: :desc)
@@ -296,7 +297,7 @@ class SubmissionFile < ApplicationRecord
       end
 
       def search_params
-        [:artist_id, :site_type, :upload_status, :corrupt, :zero_sources, :zero_artists, :larger_only_filesize_threshold, :content_type, :title, :description, { artist_url_id: [] }, :in_backlog, :order, :artist_submission_id]
+        [:artist_id, :site_type, :upload_status, :corrupt, :zero_sources, :zero_artists, :larger_only_filesize_threshold, :content_type, :title, :description, { artist_url_id: [] }, :in_backlog, :order, :artist_submission_id, :show_hidden_urls]
       end
 
       def paginate(params)

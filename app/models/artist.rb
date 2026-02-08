@@ -10,6 +10,8 @@ class Artist < ApplicationRecord
   attr_accessor :url_string
 
   def add_artist_url(url)
+    disabled = url.start_with?("-")
+    url = url[1..] if disabled
     result = Sites.from_gallery_url url
 
     if !result
@@ -25,6 +27,7 @@ class Artist < ApplicationRecord
       url_identifier: result[:identifier],
       created_at_on_site: Time.current,
       about_on_site: "",
+      is_disabled: disabled,
     )
 
     artist_url.save

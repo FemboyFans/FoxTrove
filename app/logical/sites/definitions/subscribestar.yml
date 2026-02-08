@@ -4,7 +4,7 @@ display_name: SubscribeStar
 homepage: https://subscribestar.com
 gallery_templates:
   - subscribestar.com/{site_artist_identifier}
-image_domains: # Also uses ss-uploads-prod.b-cdn.net but doesn't need headers
+image_domains: # Also uses d3ts7pb9ldoin4.cloudfront.net but doesn't need headers
   - subscribestar.com
 username_identifier_regex: "[a-zA-Z0-9_-]{3,512}"
 submission_template: https://subscribestar.com/posts/{site_submission_identifier}

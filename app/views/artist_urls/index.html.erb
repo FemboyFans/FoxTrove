@@ -3,6 +3,7 @@
   <%= f.input :url_identifier %>
   <%= f.input :api_identifier %>
   <%= f.input :missing_api_identifier, as: :checkbox %>
+  <%= f.input :is_disabled, label: "Disabled?", collection: [%w[Yes true], %w[No false]], include_blank: true %>
 <% end %>
 
 <table class="table full-width">

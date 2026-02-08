@@ -19,6 +19,10 @@ Rails.application.routes.draw do
   resources :artist_urls, only: %i[index show destroy] do
     member do
       post :enqueue
+      put :enable
+      put :disable
+      put :hide
+      put :unhide
     end
   end
   resources :submission_files, only: %i[index show destroy] do

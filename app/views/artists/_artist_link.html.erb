@@ -1,12 +1,23 @@
 <%# locals: (artist_url:) -%>
-<div class="artist-link">
+<div class="artist-link<%= " disabled" if artist_url.is_disabled? %>">
   <%= site_icon artist_url do %>
-    <%= link_to artist_url.unescaped_url_identifier, artist_path(artist_url.artist, search: { artist_url_id: [artist_url.id] }) %>
-    <% if artist_url.scraper_enabled? %>
-      <%= link_to "[U]", enqueue_artist_url_path(artist_url), method: :post, title: "Last scraped: #{last_scraped_at_text(artist_url)}" %>
-    <% elsif artist_url.site_type == "femboyfans" %>
-      <%= link_to "[U]", sync_e621_artist_path(artist_url.artist), method: :post, title: "Last scraped: #{last_scraped_at_text(artist_url)}" %>
+    <%= link_to artist_url.unescaped_url_identifier, artist_path(artist_url.artist, search: { artist_url_id: [artist_url.id] }), class: "artist-name" %>
+    <% if artist_url.is_disabled? %>
+      <%= link_to "[E]", enable_artist_url_path(artist_url), method: :put, title: "Enable" %>
+    <% else %>
+      <% if artist_url.scraper_enabled? %>
+        <%= link_to "[U]", enqueue_artist_url_path(artist_url), method: :post, title: "Last scraped: #{last_scraped_at_text(artist_url)}" %>
+      <% elsif artist_url.site_type == "femboyfans" %>
+        <%= link_to "[U]", sync_e621_artist_path(artist_url.artist), method: :post, title: "Last scraped: #{last_scraped_at_text(artist_url)}" %>
+      <% end %>
+      <%= link_to "[D]", disable_artist_url_path(artist_url), method: :put, title: "Disable" %>
     <% end %>
+    <% if artist_url.is_hidden? %>
+      <%= link_to "[UH]", unhide_artist_url_path(artist_url), method: :put, title: "Unhide" %>
+    <% else %>
+      <%= link_to "[H]", hide_artist_url_path(artist_url), method: :put, title: "Hide" %>
+    <% end %>
+    <%= link_to "[-]", artist_url_path(artist_url), method: :delete, title: "Delete", data: { confirm: "Are you sure?" } %>
     <% if artist_url.id.in? job_stats.scraping_now %>
       [Scraping now!] <%= scraper_status(artist_url, prefix: "Status") %>
     <% end %>
