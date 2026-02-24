@@ -60,7 +60,7 @@ module Scraper
         s.add_file({
                      url: url,
                      created_at: s.created_at,
-                     identifier: img["file"]["file_name"],
+                     identifier: img.dig("file", "file_name") || "noname_#{SecureRandom.hex(12)}-#{File.basename(URI.parse(url).path)}",
                    })
       end
       s
