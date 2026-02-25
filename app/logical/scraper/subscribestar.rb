@@ -14,31 +14,13 @@ module Scraper
     end
 
     def fetch_next_batch
-      result = with_cookies do |file|
-        command = "gallery-dl", "-J", "--cookies", file.path, "--filter", "date >= datetime(#{@date.year}, #{@date.month}, #{@date.day}, #{@date.hour}, #{@date.minute}, #{@date.second}) or abort()", "https://#{self.class::DOMAIN}/#{url_identifier}"
-        stdout, stderr, status = Open3.capture3(*command)
-        @artist_url.add_log_event(:gallery_dl, {
-          date: @date.iso8601,
-          url: "https://#{self.class::DOMAIN}/#{url_identifier}",
-          command: command,
-        })
-        if status.exitstatus != 0
-          raise(StandardError, stderr)
-        end
-
-        raw = JSON.parse(stdout.strip)
-        if raw.length == 1 && raw.first.second.is_a?(Hash) && raw.first.second.key?("error")
-          Rails.logger.error(stderr)
-          raise("#{raw.first.second['error']}: #{raw.first.second['message']}")
-        end
-        recent = raw.max { |a, b| DateTime.parse(b.last["date"]) - DateTime.parse(a.last["date"]) }
-        @date = DateTime.parse(recent.last["date"]) if recent&.last
-        # first is an arbitrary index, second is a url (possibly absent), last is the actual post
-        # each post will have at least two individual entries, the first is the post and the rest are the images
-        raw.group_by { |s| s.last["post_id"] }.values
-      end
+      raw = make_request("/#{url_identifier}", filter: true)
+      recent = raw.max { |a, b| DateTime.parse(b.last["date"]) - DateTime.parse(a.last["date"]) }
+      @date = DateTime.parse(recent.last["date"]) if recent&.last
       end_reached
-      result
+      # first is an arbitrary index, second is a url (possibly absent), last is the actual post
+      # each post will have at least two individual entries, the first is the post and the rest are the images
+      raw.group_by { |s| s.last["post_id"] }.values
     end
 
     def with_cookies
@@ -50,6 +32,29 @@ module Scraper
       end
     end
 
+    def make_request(path, filter: true)
+      with_cookies do |file|
+        filterargs = "--filter", "date >= datetime(#{@date.year}, #{@date.month}, #{@date.day}, #{@date.hour}, #{@date.minute}, #{@date.second}) or abort()" if filter
+        command = "gallery-dl", "-J", "--cookies", file.path, *filterargs, "https://#{self.class::DOMAIN}#{path}"
+        stdout, stderr, status = Open3.capture3(*command)
+        @artist_url.add_log_event(:gallery_dl, {
+          date: @date.iso8601,
+          url: "https://#{self.class::DOMAIN}#{path}",
+          command: command,
+        })
+        if status.exitstatus != 0
+          raise(StandardError, stderr)
+        end
+
+        raw = JSON.parse(stdout.strip)
+        if raw.length == 1 && raw.first.second.is_a?(Hash) && raw.first.second.key?("error")
+          Rails.logger.error(stderr)
+          raise("#{raw.first.second['error']}: #{raw.first.second['message']}")
+        end
+        raw
+      end
+    end
+
     def to_submission(submission)
       post = submission.find { |s| s.length == 2 }.second
       images = submission.select { |s| s.length == 3 }
@@ -57,16 +62,27 @@ module Scraper
       s.identifier = post["post_id"]
       s.title = ""
       s.description = post["content"]
-      s.created_at = DateTime.parse post["date"]
+      s.created_at = DateTime.parse(post["date"])
 
       images.each do |(_index, url, img)|
+        url = resolve_url(url)
         s.add_file({
           url: url,
+          url_expires_at: parse_url_expiry(url),
+          url_data: [img["post_id"], img["id"]],
           created_at: DateTime.parse(img["date"]),
           identifier: img["id"],
         })
       end
       s
+    end
+
+    def get_download_url(data)
+      raw = make_request("/posts/#{data[0]}", filter: false)
+      url = raw.find { |s| s.length == 3 && s[2]["id"] == data[1] }.try(:[], 1)
+      return nil if url.nil?
+      url = resolve_url(url)
+      [url, parse_url_expiry(url)]
     end
 
     def fetch_api_identifier
@@ -88,6 +104,18 @@ module Scraper
     end
 
     protected
+
+    def parse_url_expiry(url)
+      uri = URI.parse(url)
+      params = Rack::Utils.parse_nested_query(uri.query)
+      resources = JSON.parse(Base64.decode64(params["Policy"].gsub("~", "/")))["Statement"]
+      return DateTime.strptime(resources.first.dig("Condition", "DateLessThan", "AWS:EpochTime").to_s, "%s") if resources.length == 1
+      expected = uri.dup
+      expected.query = "filename=#{params['filename']}"
+      res = resources.find { |r| r["Resource"] == expected.to_s }
+      return nil if res.nil?
+      DateTime.strptime(res.dig("Condition", "DateLessThan", "AWS:EpochTime").to_s, "%s")
+    end
 
     def fetch_cookie
       SeleniumWrapper.driver do |driver|
@@ -118,6 +146,14 @@ module Scraper
 
     def format_cookie(cookie)
       "#{cookie[:domain]}\t#{cookie[:http_only].to_s.upcase}\t#{cookie[:path]}\t#{cookie[:secure].to_s.upcase}\t#{cookie[:expires].to_i}\t#{cookie[:name]}\t#{cookie[:value]}"
+    end
+
+    def resolve_url(url)
+      return url unless URI.parse(url).path == "/post_uploads"
+      res = client.request("HEAD", url, headers: download_headers, should_raise: false)
+      return url if res.status == 200
+      return res.headers["location"] if res.status == 302
+      res.raise_unless_ok
     end
   end
 end

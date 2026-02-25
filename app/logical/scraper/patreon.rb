@@ -10,32 +10,13 @@ module Scraper
     end
 
     def fetch_next_batch
-      result = with_cookies do |file|
-        proxy = "--proxy", Config.patreon_proxy if Config.patreon_proxy.present?
-        command = "gallery-dl", "-J", "--cookies", file.path, "--filter", "date >= datetime(#{@date.year}, #{@date.month}, #{@date.day}, #{@date.hour}, #{@date.minute}, #{@date.second}) or abort()", *proxy, "https://#{self.class::DOMAIN}/#{url_identifier}"
-        stdout, stderr, status = Open3.capture3(*command)
-        @artist_url.add_log_event(:gallery_dl, {
-          date: @date.iso8601,
-          url: "https://#{self.class::DOMAIN}/#{url_identifier}",
-          command: command,
-        })
-        if status.exitstatus != 0
-          raise(StandardError, stderr)
-        end
-
-        raw = JSON.parse(stdout.strip)
-        if raw.length == 1 && raw.first.second.is_a?(Hash) && raw.first.second.key?("error")
-          Rails.logger.error(stderr)
-          raise("#{raw.first.second['error']}: #{raw.first.second['message']}")
-        end
-        recent = raw.max { |a, b| DateTime.parse(b.last["date"]) - DateTime.parse(a.last["date"]) }
-        @date = DateTime.parse(recent.last["date"]) if recent&.last
-        # first is an arbitrary index, second is a url (possibly absent), last is the actual post
-        # each post will have at least two individual entries, the first is the post and the rest are the images
-        raw.select { |s| s.last["current_user_can_view"] == true }.group_by { |s| s.last["id"] }.values
-      end
+      raw = make_request("/#{url_identifier}", filter: true)
+      recent = raw.max { |a, b| DateTime.parse(b.last["date"]) - DateTime.parse(a.last["date"]) }
+      @date = DateTime.parse(recent.last["date"]) if recent&.last
       end_reached
-      result
+      # first is an arbitrary index, second is a url (possibly absent), last is the actual post
+      # each post will have at least two individual entries, the first is the post and the rest are the images
+      raw.select { |s| s.last["current_user_can_view"] == true }.group_by { |s| s.last["id"] }.values
     end
 
     def with_cookies
@@ -59,11 +40,20 @@ module Scraper
       images.each do |(_index, url, img)|
         s.add_file({
                      url: url,
+                     url_data: [img["id"], img.dig("file", "display", "media_id")],
+                     url_expires_at: parse_url_expiry(url),
                      created_at: s.created_at,
-                     identifier: img.dig("file", "file_name") || "noname_#{SecureRandom.hex(12)}-#{File.basename(URI.parse(url).path)}",
+                     identifier: img.dig("file", "file_name") || "#{img['hash']}-#{File.basename(URI.parse(url).path)}",
                    })
       end
       s
+    end
+
+    def get_download_url(data)
+      raw = make_request("/posts/#{data[0]}", filter: false)
+      url = raw.find { |s| s.length == 3 && s[2].dig("file", "display", "media_id") == data[1] }.try(:[], 1)
+      return nil if url.nil?
+      [url, parse_url_expiry(url)]
     end
 
     def fetch_api_identifier
@@ -79,7 +69,34 @@ module Scraper
       super(DateTime.parse(value))
     end
 
-    protected
+    private
+
+    def make_request(path, filter: true)
+      with_cookies do |file|
+        proxy = "--proxy", Config.patreon_proxy if Config.patreon_proxy.present?
+        filterargs = "--filter", "date >= datetime(#{@date.year}, #{@date.month}, #{@date.day}, #{@date.hour}, #{@date.minute}, #{@date.second}) or abort()" if filter
+        command = "gallery-dl", "-J", "--cookies", file.path, *filterargs, *proxy, "https://#{self.class::DOMAIN}#{path}"
+        stdout, stderr, status = Open3.capture3(*command)
+        @artist_url.add_log_event(:gallery_dl, {
+          date: @date.iso8601,
+          url: "https://#{self.class::DOMAIN}#{path}",
+          command: command,
+        })
+        if status.exitstatus != 0
+          raise(StandardError, stderr)
+        end
+        raw = JSON.parse(stdout.strip)
+        if raw.length == 1 && raw.first.second.is_a?(Hash) && raw.first.second.key?("error")
+          Rails.logger.error(stderr)
+          raise("#{raw.first.second['error']}: #{raw.first.second['message']}")
+        end
+        raw
+      end
+    end
+
+    def parse_url_expiry(url)
+      DateTime.strptime(Rack::Utils.parse_nested_query(URI.parse(url).query)["token-time"], "%s") rescue nil
+    end
 
     def fetch_cookie
       SeleniumWrapper.driver do |driver|

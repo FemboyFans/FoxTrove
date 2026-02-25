@@ -32,6 +32,7 @@ Rails.application.routes.draw do
       put :modify_hidden
       put :set_last_known_good
       get :upload
+      get :open_external
     end
     collection do
       get :backlog

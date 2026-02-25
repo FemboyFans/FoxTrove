@@ -68,10 +68,12 @@ class SubmissionFile < ApplicationRecord
     ActiveStorage::Blob.create_and_upload!(io: io, filename: filename, content_type: mime_type, identify: false)
   end
 
-  def self.from_attachable(attachable:, artist_submission:, url:, created_at:, file_identifier:, filename: nil)
+  def self.from_attachable(attachable:, artist_submission:, url:, url_expires_at: nil, url_data: nil, created_at:, file_identifier:, filename: nil)
     submission_file = SubmissionFile.new(
       artist_submission: artist_submission,
       direct_url: url,
+      direct_url_expires_at: url_expires_at,
+      direct_url_data: url_data,
       created_at_on_site: created_at,
       file_identifier: file_identifier,
     )
@@ -135,6 +137,23 @@ class SubmissionFile < ApplicationRecord
 
   def corrupt?
     file_error.present?
+  end
+
+  def direct_url_expired?
+    return false unless direct_url_can_expire?
+    return true if direct_url_expires_at.nil?
+    direct_url_expires_at < Time.now
+  end
+
+  def direct_url_can_expire?
+    ArtistUrl::EXPIRING_URLS.include?(artist_url.site_type)
+  end
+
+  def refresh_direct_url!
+    return nil if !direct_url_can_expire? || direct_url_data.blank?
+    res = artist_url.scraper.get_download_url(direct_url_data)
+    update!(direct_url: res.first, direct_url_expires_at: res.second)
+    res.first
   end
 
   def original_attachment=(new_attachment)

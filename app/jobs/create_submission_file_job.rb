@@ -11,6 +11,8 @@ class CreateSubmissionFileJob < ConcurrencyControlledJob
         attachable: bin_file,
         artist_submission: artist_submission,
         url: url,
+        url_expires_at: file[:url_expires_at],
+        url_data: file[:url_data],
         created_at: file[:created_at],
         file_identifier: file[:identifier],
         **kwargs
@@ -22,10 +24,18 @@ class CreateSubmissionFileJob < ConcurrencyControlledJob
       create.call(file[:url] || "file://#{bin_file.path}", bin_file, filename: File.basename(bin_file.path))
       File.delete(file[:file]) if file[:rm_file] && File.exist?(file[:file])
     else
-      # Deviantarts download links expire, they need to be fetched when you actually use them
-      url = file[:url].presence || artist_submission.artist_url.scraper.get_download_link(file[:url_data])
-        Sites.download_file(url, artist_submission: artist_submission) do |bin_file|
-          create.call(url, bin_file)
+      # Some download links expire, they need to be fetched when we actually use them
+      url = file[:url].presence
+      if file[:url_expires_at] && file[:url_expires_at] < Time.now
+        if file[:url_data].present?
+          url = artist_submission.artist_url.scraper.get_download_url(file[:url_data])
+        else
+          raise("No url to download (expired & no data)")
+        end
+      end
+      raise("No url to download") if url.nil?
+      Sites.download_file(url, artist_submission: artist_submission) do |bin_file|
+        create.call(url, bin_file)
       rescue SubmissionFile::ContentTypeError, SubmissionFile::AnalysisError => e
         Rails.logger.error("Error downloading file: #{e.class.name} #{e.message}")
       end

@@ -27,6 +27,19 @@ class SubmissionFilesController < ApplicationController
     redirect_to(url, allow_other_host: true)
   end
 
+  def open_external
+    @submission_file = SubmissionFile.find(params[:id])
+    url = @submission_file.direct_url
+    if @submission_file.direct_url_can_expire? && @submission_file.direct_url_expired?
+      url = @submission_file.refresh_direct_url!
+    end
+    if url.nil?
+      flash[:notice] = "No direct url"
+      return redirect_back_or_to(submission_file_path(@submission_file))
+    end
+    redirect_to(url, allow_other_host: true)
+  end
+
   def modify_backlog
     submission_file = SubmissionFile.find(params[:id])
     in_backlog = params[:type] == "add"

@@ -32,8 +32,10 @@ module Scraper
       s.description = ""
       s.created_at = DateTime.strptime(submission["published_time"], "%s")
       s.add_file({}.tap do |hash|
+        url = submission.dig("content", "src")&.gsub(/q_\d+(,strp)?/, "q_100")
         hash[:url_data] = [submission["deviationid"]] if submission["is_downloadable"]
-        hash[:url] = submission["content"]["src"].gsub(/q_\d+(,strp)?/, "q_100") unless submission["is_downloadable"]
+        hash[:url] = url if url && submission["is_downloadable"]
+        hash[:url_expires_at] = parse_url_expiry(url) if url && submission["is_downloadable"]
         hash[:created_at] = s.created_at
         hash[:identifier] = ""
       end)
@@ -41,8 +43,9 @@ module Scraper
     end
 
     # https://www.deviantart.com/developers/http/v1/20210526/deviation_download/bed6982b88949bdb08b52cd6763fcafd
-    def get_download_link(data)
-      make_api_call("/deviation/download/#{data[0]}")["src"]
+    def get_download_url(data)
+      url = make_api_call("/deviation/download/#{data[0]}")["src"]
+      [url, parse_url_expiry(url)]
     end
 
     # https://www.deviantart.com/developers/http/v1/20210526/user_profile/0b06f6d6c8aa25b33b52f836e53f4f65
@@ -65,6 +68,13 @@ module Scraper
           "dA-minor-version": "20210526",
         },
       )
+    end
+
+    # new urls might not have an expiry?
+    def parse_url_expiry(url)
+      exp = Base64.decode64(Rack::Utils.parse_nested_query(URI.parse(url).query)["token"]).match(%r/"exp":(\d+)/).try(:[], 1)
+      return nil if exp.nil?
+      DateTime.strptime(exp, "%s") rescue nil
     end
 
     # https://www.deviantart.com/developers/authentication

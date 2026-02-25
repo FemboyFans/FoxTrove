@@ -40,6 +40,7 @@ class ArtistUrl < ApplicationRecord
     omorashi threads femboyfans kemono
     hipolink vgen subscribestar_adult
   ].map.with_index { |v, index| [v, index] }.to_h
+  EXPIRING_URLS = %w[deviantart patreon subscribestar subscribestar_adult]
 
   def self.search(params)
     q = join_attribute_nil_check(params[:in_backlog], submissions: { submission_files: :added_to_backlog_at })
