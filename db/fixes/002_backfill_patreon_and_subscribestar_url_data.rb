@@ -3,7 +3,7 @@
 require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment")))
 ActiveRecord::Base.logger = nil
 
-ArtistUrl.where(site_type: "patreon").includes(:artist, submissions: :submission_files).find_each do |artist_url|
+ArtistUrl.enabled.where(site_type: "patreon").includes(:artist, submissions: :submission_files).find_each do |artist_url|
   puts artist_url.artist.name
   scraper = artist_url.scraper
   scraper.jumpstart(Time.at(0).iso8601)
@@ -24,7 +24,7 @@ ArtistUrl.where(site_type: "patreon").includes(:artist, submissions: :submission
   end
 end
 
-ArtistUrl.where(site_type: %w[subscribestar subscribestar_adult]).includes(:artist, submissions: :submission_files).find_each do |artist_url|
+ArtistUrl.enabled.where(site_type: %w[subscribestar subscribestar_adult]).includes(:artist, submissions: :submission_files).find_each do |artist_url|
   puts artist_url.artist.name
   scraper = artist_url.scraper
   scraper.jumpstart(Time.at(0).iso8601)
