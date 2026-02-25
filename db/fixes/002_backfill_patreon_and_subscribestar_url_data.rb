@@ -15,6 +15,7 @@ ArtistUrl.enabled.where(site_type: "patreon").includes(:artist, submissions: :su
     images = sub.select { |s| s.length == 3 }
     next if artsub.nil? || images.none?
     images.each do |(_index, url, img)|
+      next if url.nil?
       id = img.dig("file", "file_name") || "#{img['hash']}-#{File.basename(URI.parse(url).path)}"
       file = artsub.submission_files.find { |s| s.file_identifier == id }
       next unless file
@@ -36,7 +37,9 @@ ArtistUrl.enabled.where(site_type: %w[subscribestar subscribestar_adult]).includ
     images = sub.select { |s| s.length == 3 }
     next if artsub.nil? || images.none?
     images.each do |(_index, url, img)|
+      next if url.nil?
       url = scraper.send(:resolve_url, url)
+      next if url.nil?
       id = img["id"].to_s
       file = artsub.submission_files.find { |s| s.file_identifier == id }
       next unless file
