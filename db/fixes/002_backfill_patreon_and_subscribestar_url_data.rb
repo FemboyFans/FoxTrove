@@ -3,7 +3,8 @@
 require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment")))
 ActiveRecord::Base.logger = nil
 
-ArtistUrl.where(site_type: "patreon").includes(submissions: :submission_files).find_each do |artist_url|
+ArtistUrl.where(site_type: "patreon").includes(:artist, submissions: :submission_files).find_each do |artist_url|
+  puts artist_url.artist.name
   scraper = artist_url.scraper
   scraper.jumpstart(Time.at(0).iso8601)
   submissions = scraper.fetch_next_batch
@@ -17,13 +18,14 @@ ArtistUrl.where(site_type: "patreon").includes(submissions: :submission_files).f
       id = img.dig("file", "file_name") || "#{img['hash']}-#{File.basename(URI.parse(url).path)}"
       file = artsub.submission_files.find { |s| s.file_identifier == id }
       next unless file
-      puts "site=#{artist_url.site_type} post=#{img['id']} sub=#{artsub.id} img=#{id}"
+      puts "artist=#{artist_url.artist.name} site=#{artist_url.site_type} post=#{img['id']} sub=#{artsub.id} img=#{id}"
       file.update(direct_url: url, direct_url_data: [img["id"], img.dig("file", "display", "media_id")], direct_url_expires_at: scraper.send(:parse_url_expiry, url))
     end
   end
 end
 
-ArtistUrl.where(site_type: %w[subscribestar subscribestar_adult]).includes(submissions: :submission_files).find_each do |artist_url|
+ArtistUrl.where(site_type: %w[subscribestar subscribestar_adult]).includes(:artist, submissions: :submission_files).find_each do |artist_url|
+  puts artist_url.artist.name
   scraper = artist_url.scraper
   scraper.jumpstart(Time.at(0).iso8601)
   submissions = scraper.fetch_next_batch
@@ -38,7 +40,7 @@ ArtistUrl.where(site_type: %w[subscribestar subscribestar_adult]).includes(submi
       id = img["id"].to_s
       file = artsub.submission_files.find { |s| s.file_identifier == id }
       next unless file
-      puts "site=#{artist_url.site_type} post=#{img['id']} sub=#{artsub.id} img=#{id}"
+      puts "artist=#{artist_url.artist.name} site=#{artist_url.site_type} post=#{img['id']} sub=#{artsub.id} img=#{id}"
       file.update(direct_url: url, direct_url_data: [img["post_id"], img["id"]], direct_url_expires_at: scraper.send(:parse_url_expiry, url))
     end
   end

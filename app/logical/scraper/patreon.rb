@@ -76,12 +76,12 @@ module Scraper
         proxy = "--proxy", Config.patreon_proxy if Config.patreon_proxy.present?
         filterargs = "--filter", "date >= datetime(#{@date.year}, #{@date.month}, #{@date.day}, #{@date.hour}, #{@date.minute}, #{@date.second}) or abort()" if filter
         command = "gallery-dl", "-J", "--cookies", file.path, *filterargs, *proxy, "https://#{self.class::DOMAIN}#{path}"
-        stdout, stderr, status = Open3.capture3(*command)
         @artist_url.add_log_event(:gallery_dl, {
           date: @date.iso8601,
           url: "https://#{self.class::DOMAIN}#{path}",
           command: command,
         })
+        stdout, stderr, status = Open3.capture3(*command)
         if status.exitstatus != 0
           raise(StandardError, stderr)
         end
